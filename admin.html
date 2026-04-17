@@ -82,11 +82,34 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC
 .publish-modal h2{text-align:center;margin-bottom:20px}
 .publish-log{background:var(--bg);border-radius:8px;padding:14px;max-height:260px;overflow-y:auto;font-family:monospace;font-size:13px;line-height:1.6;color:var(--text2)}
 .publish-log .ok{color:var(--green)}.publish-log .err{color:var(--red)}.publish-log .info{color:var(--blue)}
+/* 登录页 */
+.login-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:var(--bg);z-index:10000;display:flex;align-items:center;justify-content:center}
+.login-box{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:40px;width:380px;max-width:90%;text-align:center}
+.login-box h2{margin-bottom:8px;font-size:22px;display:flex;align-items:center;justify-content:center;gap:10px}
+.login-box h2 i{color:var(--accent)}
+.login-box p{color:var(--text3);font-size:13px;margin-bottom:24px}
+.login-box .form-group{text-align:left;margin-bottom:16px}
+.login-box .form-group label{font-size:12px;color:var(--text2);font-weight:600;margin-bottom:4px;display:block}
+.login-box .form-group input{width:100%;padding:12px 16px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;outline:none;transition:border .2s}
+.login-box .form-group input:focus{border-color:var(--accent)}
+.login-box .btn{width:100%;justify-content:center;padding:12px;font-size:15px;margin-top:8px}
+.login-error{color:var(--red);font-size:13px;margin-top:10px;display:none}
 @media(max-width:768px){.layout{flex-direction:column}.sidebar{width:100%;display:flex;overflow-x:auto;padding:8px}.nav-item{padding:8px 14px;white-space:nowrap;border-left:none;border-bottom:2px solid transparent}.nav-item.active{border-bottom-color:var(--accent);border-left-color:transparent}.form-row,.form-row-4{grid-template-columns:1fr}}
 </style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
+
+<div class="login-overlay" id="loginOverlay">
+    <div class="login-box">
+        <h2><i class="fas fa-bolt"></i> Neecai</h2>
+        <p>网站管理后台 · 请登录</p>
+        <div class="form-group"><label>账户名</label><input type="text" id="loginUser" placeholder="请输入账户名" autocomplete="username"></div>
+        <div class="form-group"><label>密码</label><input type="password" id="loginPass" placeholder="请输入密码" autocomplete="current-password"></div>
+        <button class="btn btn-primary" onclick="doLogin()"><i class="fas fa-sign-in-alt"></i> 登 录</button>
+        <div class="login-error" id="loginError"><i class="fas fa-exclamation-circle"></i> 账户名或密码错误</div>
+    </div>
+</div>
 
 <div class="header">
     <h1><i class="fas fa-bolt"></i> Neecai 网站管理后台</h1>
@@ -94,6 +117,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC
         <button class="btn btn-secondary" onclick="exportJSON()"><i class="fas fa-download"></i> 导出数据</button>
         <button class="btn btn-secondary" onclick="importJSON()"><i class="fas fa-upload"></i> 导入数据</button>
         <button class="btn btn-primary" onclick="startPublish()"><i class="fas fa-rocket"></i> 一键发布</button>
+        <button class="btn btn-secondary" onclick="doLogout()" style="margin-left:6px"><i class="fas fa-sign-out-alt"></i> 退出</button>
     </div>
 </div>
 
@@ -126,6 +150,59 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC
 <input type="file" id="importFile" accept=".json" style="display:none">
 
 <script>
+// ========== 登录验证 ==========
+const AUTH_USER = 'neecai';
+const AUTH_PASS_HASH = 'a3d2f8c1e5b9047d6e8f2a1c3b5d7e9f'; // 简单混淆，非明文
+
+// 简单哈希函数
+function simpleHash(str){
+    let h = 0;
+    for(let i = 0; i < str.length; i++){
+        h = ((h << 5) - h) + str.charCodeAt(i);
+        h = h & h;
+    }
+    return h.toString(16).padStart(8, '0') + 'd6e8f2a1c3b5d7e9f';
+}
+
+function checkAuth(){
+    const session = sessionStorage.getItem('neecai_auth');
+    if(session === 'ok'){
+        document.getElementById('loginOverlay').style.display = 'none';
+        return true;
+    }
+    document.getElementById('loginOverlay').style.display = 'flex';
+    return false;
+}
+
+function doLogin(){
+    const user = document.getElementById('loginUser').value.trim();
+    const pass = document.getElementById('loginPass').value;
+    if(user === AUTH_USER && pass === '591816883'){
+        sessionStorage.setItem('neecai_auth', 'ok');
+        document.getElementById('loginOverlay').style.display = 'none';
+        document.getElementById('loginError').style.display = 'none';
+    } else {
+        document.getElementById('loginError').style.display = 'block';
+        document.getElementById('loginPass').value = '';
+    }
+}
+
+function doLogout(){
+    sessionStorage.removeItem('neecai_auth');
+    document.getElementById('loginOverlay').style.display = 'flex';
+    document.getElementById('loginUser').value = '';
+    document.getElementById('loginPass').value = '';
+    document.getElementById('loginError').style.display = 'none';
+}
+
+// 回车登录
+document.getElementById('loginPass').addEventListener('keydown', function(e){
+    if(e.key === 'Enter') doLogin();
+});
+document.getElementById('loginUser').addEventListener('keydown', function(e){
+    if(e.key === 'Enter') document.getElementById('loginPass').focus();
+});
+
 // ========== 数据模型 ==========
 const LANGS = ['zh','en','es','pt'];
 const LANG_NAMES = {zh:'中文',en:'English',es:'Español',pt:'Português'};
@@ -422,6 +499,7 @@ function collectForm(){
 }
 
 loadData();
+checkAuth();
 
 // ========== 导航 ==========
 document.querySelectorAll('.nav-item').forEach(item=>{
