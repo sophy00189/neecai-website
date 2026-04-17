@@ -126,7 +126,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC
 
 <div class="layout">
     <div class="sidebar">
-        <div class="nav-item active" data-panel="products"><i class="fas fa-box"></i> 产品管理</div>
+        <div class="nav-item active" data-panel="navbar"><i class="fas fa-compass"></i> 导航栏</div>
+        <div class="nav-item" data-panel="products"><i class="fas fa-box"></i> 产品管理</div>
         <div class="nav-item" data-panel="solutions"><i class="fas fa-puzzle-piece"></i> 解决方案</div>
         <div class="nav-item" data-panel="cases"><i class="fas fa-images"></i> 经典案例</div>
         <div class="nav-item" data-panel="hero"><i class="fas fa-home"></i> 首页区域</div>
@@ -246,6 +247,15 @@ const DEFAULT_DATA = {
         es:{title:'Sobre Neecai',lead:'No solo fabricamos equipos—<br>somos <strong>creadores de milagros escénicos</strong>.',p1:'Neecai, fundada en 2010, es una empresa de alta tecnología que integra I+D, producción, ventas y servicio.',p2:'En 15 años, hemos servido más de 3.000 eventos en más de 50 países.'},
         pt:{title:'Sobre a Neecai',lead:'Não apenas fabricamos equipamentos—<br>somos <strong>criadores de milagres de palco</strong>.',p1:'Neecai, fundada em 2010, é uma empresa de alta tecnologia que integra P&D, produção, vendas e serviço.',p2:'Em 15 anos, servimos mais de 3.000 eventos em mais de 50 países.'}
     },
+    navbar: {
+        logo_icon:'fas fa-bolt',
+        logo_text:'Neecai',
+        logo_img:'',
+        zh:{logo_sub:'霓彩',nav_home:'首页',nav_products:'产品中心',nav_solutions:'解决方案',nav_cases:'经典案例',nav_about:'关于我们',nav_contact:'联系我们',nav_quote:'获取报价'},
+        en:{logo_sub:'Neecai',nav_home:'Home',nav_products:'Products',nav_solutions:'Solutions',nav_cases:'Portfolio',nav_about:'About',nav_contact:'Contact',nav_quote:'Get Quote'},
+        es:{logo_sub:'Neecai',nav_home:'Inicio',nav_products:'Productos',nav_solutions:'Soluciones',nav_cases:'Portafolio',nav_about:'Nosotros',nav_contact:'Contacto',nav_quote:'Cotizar'},
+        pt:{logo_sub:'Neecai',nav_home:'Início',nav_products:'Produtos',nav_solutions:'Soluções',nav_cases:'Portfólio',nav_about:'Sobre',nav_contact:'Contato',nav_quote:'Orçamento'}
+    },
     contact: {
         phone:'+86 400-888-6688',
         email:'info@neecai.net',
@@ -298,6 +308,7 @@ function loadData(){
         if(!siteData.testimonials) siteData.testimonials = defaults.testimonials;
         if(!siteData.form) siteData.form = defaults.form;
         if(!siteData.popup) siteData.popup = defaults.popup;
+        if(!siteData.navbar) siteData.navbar = defaults.navbar;
     } else {
         siteData = defaults;
     }
@@ -340,6 +351,7 @@ function collectCurrentPanelData(){
     const panel = activeNav.dataset.panel;
     
     switch(panel){
+        case 'navbar': collectNavbar(); break;
         case 'products': collectProducts(); break;
         case 'solutions': collectSolutions(); break;
         case 'cases': collectCases(); break;
@@ -519,7 +531,7 @@ document.querySelectorAll('.nav-item').forEach(item=>{
 
 function renderPanel(name){
     const main = document.getElementById('mainContent');
-    const renderers = {products:renderProducts, solutions:renderSolutions, cases:renderCases, hero:renderHero, about:renderAbout, advantages:renderAdvantages, testimonials:renderTestimonials, contact:renderContact, form:renderForm, settings:renderSettings};
+    const renderers = {navbar:renderNavbar, products:renderProducts, solutions:renderSolutions, cases:renderCases, hero:renderHero, about:renderAbout, advantages:renderAdvantages, testimonials:renderTestimonials, contact:renderContact, form:renderForm, settings:renderSettings};
     if(renderers[name]) renderers[name](main);
 }
 
@@ -1045,6 +1057,84 @@ function initImgEditor(id){
 
 
 function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ========== 导航栏管理 ==========
+function renderNavbar(main){
+    const n = siteData.navbar;
+    let html = `<div class="panel active"><div class="panel-title"><i class="fas fa-compass"></i> 导航栏管理</div>`;
+    
+    // Logo 设置
+    html += `<div class="card"><div class="card-header" onclick="toggleCard(this)"><h3><i class="fas fa-chevron-down"></i> Logo 设置</h3><span class="card-toggle">展开/收起</span></div><div class="card-body">`;
+    html += inputGroup('Logo 图标 Class','nb_logo_icon', n.logo_icon, null);
+    html += `<p style="color:var(--text3);font-size:12px;margin-top:-8px;margin-bottom:12px">常用图标: fas fa-bolt（闪电）, fas fa-fire（火焰）, fas fa-star（星星）, fas fa-magic（魔法棒）</p>`;
+    html += inputGroup('Logo 主文字','nb_logo_text', n.logo_text, null);
+    html += `<div class="form-group"><label>Logo 图片（替换图标）</label><p style="color:var(--text3);font-size:12px;margin:4px 0 8px">上传图片后将替换图标显示在导航栏左上角</p>${n.logo_img ? `<div style="display:flex;align-items:center;gap:12px"><img src="${n.logo_img}" style="height:40px;border-radius:4px;border:1px solid var(--border)"><button class="btn btn-danger" style="font-size:12px;padding:4px 10px" onclick="removeLogoImg()"><i class="fas fa-trash"></i> 删除</button></div>` : `<div class="img-upload" id="iu_nb_logo" style="min-height:80px;padding:16px" onclick="document.getElementById('if_nb_logo').click()"><input type="file" id="if_nb_logo" accept="image/*" onchange="uploadLogoImg(this)" style="display:none"><i class="fas fa-cloud-upload-alt" style="font-size:20px;color:var(--text3)"></i><p style="font-size:12px">点击上传 Logo 图片</p></div>`}</div>`;
+    html += `</div></div>`;
+    
+    // 导航文字
+    html += `<div class="card"><div class="card-header" onclick="toggleCard(this)"><h3><i class="fas fa-chevron-down"></i> 导航文字</h3><span class="card-toggle">展开/收起</span></div><div class="card-body">`;
+    html += langTabs('nb');
+    LANGS.forEach(l=>{
+        html += `<div data-lang-field="${l}" style="display:${l==='zh'?'':'none'}">`;
+        html += inputGroup('Logo 副标题','nb_'+l+'_logo_sub', n[l].logo_sub, l);
+        html += inputGroup('导航-首页','nb_'+l+'_nav_home', n[l].nav_home, l);
+        html += inputGroup('导航-产品中心','nb_'+l+'_nav_products', n[l].nav_products, l);
+        html += inputGroup('导航-解决方案','nb_'+l+'_nav_solutions', n[l].nav_solutions, l);
+        html += inputGroup('导航-经典案例','nb_'+l+'_nav_cases', n[l].nav_cases, l);
+        html += inputGroup('导航-关于我们','nb_'+l+'_nav_about', n[l].nav_about, l);
+        html += inputGroup('导航-联系我们','nb_'+l+'_nav_contact', n[l].nav_contact, l);
+        html += inputGroup('按钮-获取报价','nb_'+l+'_nav_quote', n[l].nav_quote, l);
+        html += `</div>`;
+    });
+    html += `</div></div>`;
+    
+    html += `<button class="btn btn-success" onclick="saveNavbar()"><i class="fas fa-save"></i> 保存导航栏</button></div>`;
+    main.innerHTML = html;
+}
+
+function uploadLogoImg(input){
+    const file = input.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e){
+        compressImage(e.target.result, 200, function(compressed){
+            siteData.navbar.logo_img = compressed;
+            saveData();
+            renderNavbar(document.getElementById('mainContent'));
+            showToast('Logo 图片已上传','success');
+        });
+    };
+    reader.readAsDataURL(file);
+}
+
+function removeLogoImg(){
+    siteData.navbar.logo_img = '';
+    saveData();
+    renderNavbar(document.getElementById('mainContent'));
+    showToast('Logo 图片已删除','success');
+}
+
+function collectNavbar(){
+    const n = siteData.navbar;
+    n.logo_icon = document.getElementById('nb_logo_icon')?.value || n.logo_icon;
+    n.logo_text = document.getElementById('nb_logo_text')?.value || n.logo_text;
+    LANGS.forEach(l=>{
+        n[l].logo_sub = document.getElementById('nb_'+l+'_logo_sub')?.value || n[l].logo_sub;
+        n[l].nav_home = document.getElementById('nb_'+l+'_nav_home')?.value || n[l].nav_home;
+        n[l].nav_products = document.getElementById('nb_'+l+'_nav_products')?.value || n[l].nav_products;
+        n[l].nav_solutions = document.getElementById('nb_'+l+'_nav_solutions')?.value || n[l].nav_solutions;
+        n[l].nav_cases = document.getElementById('nb_'+l+'_nav_cases')?.value || n[l].nav_cases;
+        n[l].nav_about = document.getElementById('nb_'+l+'_nav_about')?.value || n[l].nav_about;
+        n[l].nav_contact = document.getElementById('nb_'+l+'_nav_contact')?.value || n[l].nav_contact;
+        n[l].nav_quote = document.getElementById('nb_'+l+'_nav_quote')?.value || n[l].nav_quote;
+    });
+}
+
+function saveNavbar(){
+    collectNavbar();
+    saveData();
+    showToast('导航栏数据已保存','success');
+}
 
 // ========== 产品管理 ==========
 function renderProducts(main){
@@ -1597,6 +1687,17 @@ async function startPublish(){
                 else{const e=await r.json();addLog(`  ✗ ${imgPath} 上传失败: ${e.message}`,'err');}
             }
         }
+        // 上传 Logo 图片
+        if(siteData.navbar.logo_img && siteData.navbar.logo_img.startsWith('data:')){
+            const imgPath = `images/logo.${siteData.navbar.logo_img.includes('png')?'png':'jpg'}`;
+            addLog(`上传 Logo 图片: ${imgPath}`,'info');
+            const sha = await getFileSHA(imgPath);
+            const body = {message:'上传 Logo 图片', content: siteData.navbar.logo_img.split(',')[1], branch};
+            if(sha) body.sha = sha;
+            const r = await fetch(`https://api.github.com/repos/${repo}/contents/${imgPath}`,{method:'PUT',headers,body:JSON.stringify(body)});
+            if(r.ok){addLog(`  ✓ ${imgPath} 上传成功`,'ok');siteData.navbar.logo_img=`/${imgPath}`;imgCount++;}
+            else{const e=await r.json();addLog(`  ✗ ${imgPath} 上传失败: ${e.message}`,'err');}
+        }
         if(imgCount) saveData();
 
         // 4. 推送 script.js
@@ -1633,10 +1734,8 @@ function generateScriptJS(){
     LANGS.forEach(l=>{
         t[l] = {};
         // 通用导航
-        if(l==='zh'){Object.assign(t[l],{logo_sub:'霓彩',nav_home:'首页',nav_products:'产品中心',nav_solutions:'解决方案',nav_cases:'经典案例',nav_about:'关于我们',nav_contact:'联系我们',nav_quote:'获取报价'});}
-        else if(l==='en'){Object.assign(t[l],{logo_sub:'Neecai',nav_home:'Home',nav_products:'Products',nav_solutions:'Solutions',nav_cases:'Portfolio',nav_about:'About',nav_contact:'Contact',nav_quote:'Get Quote'});}
-        else if(l==='es'){Object.assign(t[l],{logo_sub:'Neecai',nav_home:'Inicio',nav_products:'Productos',nav_solutions:'Soluciones',nav_cases:'Portafolio',nav_about:'Nosotros',nav_contact:'Contacto',nav_quote:'Cotizar'});}
-        else if(l==='pt'){Object.assign(t[l],{logo_sub:'Neecai',nav_home:'Início',nav_products:'Produtos',nav_solutions:'Soluções',nav_cases:'Portfólio',nav_about:'Sobre',nav_contact:'Contato',nav_quote:'Orçamento'});}
+        const nb = siteData.navbar[l];
+        Object.assign(t[l],{logo_sub:nb.logo_sub,nav_home:nb.nav_home,nav_products:nb.nav_products,nav_solutions:nb.nav_solutions,nav_cases:nb.nav_cases,nav_about:nb.nav_about,nav_contact:nb.nav_contact,nav_quote:nb.nav_quote});
 
         // Hero
         const h = siteData.hero[l];
@@ -1842,6 +1941,23 @@ async function generateIndexHTML(){
     html = html.replace(/href="tel:[^"]*"/, `href="tel:${siteData.contact.phone}"`);
     html = html.replace(/href="mailto:[^"]*"/, `href="mailto:${siteData.contact.email}"`);
 
+    // Update navbar logo icon
+    const nb = siteData.navbar;
+    if(nb.logo_icon){
+        html = html.replace(/<span class="logo-icon"><i class="fas[^"]*"><\/i><\/span>/g,
+            `<span class="logo-icon"><i class="${nb.logo_icon}"></i></span>`);
+    }
+    // Update navbar logo text
+    if(nb.logo_text){
+        html = html.replace(/<span class="logo-text">Neecai/g,
+            `<span class="logo-text">${nb.logo_text}`);
+    }
+    // Update navbar logo image (replace icon with img if uploaded)
+    if(nb.logo_img){
+        html = html.replace(/<span class="logo-icon"><i class="[^"]*"><\/i><\/span>/g,
+            `<span class="logo-icon"><img src="${nb.logo_img}" alt="Logo" style="height:32px;width:auto"></span>`);
+    }
+
     // Update version for cache busting
     const ver = Date.now();
     html = html.replace(/style\.css\?v=\d+/, `style.css?v=${ver}`);
@@ -1851,7 +1967,7 @@ async function generateIndexHTML(){
 }
 
 // ========== 初始化 ==========
-renderPanel('products');
+renderPanel('navbar');
 </script>
 </body>
 </html>
