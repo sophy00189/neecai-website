@@ -1946,18 +1946,18 @@ async function generateIndexHTML(){
 
     // Update navbar logo
     const nb = siteData.navbar;
-    // Logo 图片优先（替换整个 logo-icon 内容为 img）
+    // Logo 图片：替换文字区域（Neecai霓彩）为图片
     if(nb.logo_img && !nb.logo_img.startsWith('data:')){
-        html = html.replace(/<span class="logo-icon"><i class="[^"]*"><\/i><\/span>/g,
-            `<span class="logo-icon"><img src="${nb.logo_img}" alt="Logo"></span>`);
+        html = html.replace(/<span class="logo-text">[^<]*<span class="logo-accent"[^<]*<\/span><\/span>/g,
+            `<span class="logo-text"><img src="${nb.logo_img}" alt="Logo" class="logo-img"></span>`);
     }
     // 如果没有图片，则更新图标 class
     else if(nb.logo_icon){
         html = html.replace(/<span class="logo-icon"><i class="fas[^"]*"><\/i><\/span>/g,
             `<span class="logo-icon"><i class="${nb.logo_icon}"></i></span>`);
     }
-    // Update navbar logo text
-    if(nb.logo_text){
+    // Update navbar logo text（没有图片时才替换文字）
+    if(nb.logo_text && !nb.logo_img){
         html = html.replace(/<span class="logo-text">Neecai/g,
             `<span class="logo-text">${nb.logo_text}`);
     }
