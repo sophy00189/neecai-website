@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
         "scroll_down": "向下滚动",
         "products_title": "产品中心",
         "products_desc": "覆盖舞台特效全品类，从火焰到星光，一站式满足你的所有需求",
-        "p_fire_title": "火焰特效",
+        "p_fire_title": "冷焰机",
         "p_fire_desc": "专业级舞台火焰机，喷射高度可达8-10米，支持DMX512控制，瞬间点燃全场氛围。",
         "p_fire_f1": "多种火焰形态",
         "p_fire_f2": "智能安全防护",
