@@ -249,12 +249,187 @@ function switchLang(prefix, lang){
     tabs.parentElement.querySelectorAll('[data-lang-field]').forEach(el=>{
         el.style.display = el.dataset.langField===lang ? '' : 'none';
     });
+    // 切换到某语言时，移除该语言 tab 上的翻译小圆点（用户已查看）
+    const activeTab = tabs.querySelector(`.lang-tab[data-lang="${lang}"]`);
+    if(activeTab){
+        const dot = activeTab.querySelector('.trans-dot');
+        if(dot) dot.remove();
+    }
 }
 
 function inputGroup(label, id, value, lang, multiline){
-    const display = lang ? '' : '';
-    if(multiline) return `<div class="form-group" ${lang?`data-lang-field="${lang}"`:''}><label>${label}</label><textarea id="${id}" data-key="${id}">${value||''}</textarea></div>`;
-    return `<div class="form-group" ${lang?`data-lang-field="${lang}"`:''}><label>${label}</label><input type="text" id="${id}" value="${escHtml(value||'')}" data-key="${id}"></div>`;
+    const autoTransAttr = lang === 'zh' ? ` oninput="debounceTranslate('${id}', this.value)"` : '';
+    if(multiline) return `<div class="form-group" ${lang?`data-lang-field="${lang}"`:''}><label>${label}</label><textarea id="${id}" data-key="${id}"${autoTransAttr}>${value||''}</textarea></div>`;
+    return `<div class="form-group" ${lang?`data-lang-field="${lang}"`:''}><label>${label}</label><input type="text" id="${id}" value="${escHtml(value||'')}" data-key="${id}"${autoTransAttr}></div>`;
+}
+
+// ========== 自动翻译系统 ==========
+const TRANSLATE_CACHE = {};
+let translateQueue = [];
+let isTranslating = false;
+let debounceTimers = {};
+
+// 防抖翻译：输入停止 800ms 后触发
+function debounceTranslate(zhId, zhText){
+    if(debounceTimers[zhId]) clearTimeout(debounceTimers[zhId]);
+    debounceTimers[zhId] = setTimeout(()=>{
+        autoTranslate(zhId, zhText);
+        delete debounceTimers[zhId];
+    }, 800);
+}
+
+function autoTranslate(zhId, zhText){
+    if(!zhText || zhText.trim().length === 0) return;
+    
+    const targetLangs = [
+        {lang:'en', label:'English', code:'en'},
+        {lang:'es', label:'Español', code:'es'},
+        {lang:'pt', label:'Português', code:'pt'}
+    ];
+    
+    // 显示翻译状态提示
+    showTranslateStatus(zhId, true);
+    
+    targetLangs.forEach(({lang, label, code}) => {
+        // 构建 target ID: 替换 _zh_ 为 _en_ 等
+        let targetId = zhId;
+        if(zhId.includes('_zh_')){
+            targetId = zhId.replace('_zh_', '_'+lang+'_');
+        } else if(zhId.endsWith('_zh')){
+            // 如 ct_addr_zh → ct_addr_en
+            targetId = zhId.replace(/_zh$/, '_'+lang);
+        } else {
+            targetId = zhId.replace(/_zh([_])/, '_'+lang+'$1');
+        }
+        
+        const targetEl = document.getElementById(targetId);
+        if(!targetEl) return;
+        // 如果用户已手动编辑过（有内容且非自动翻译），跳过
+        if(targetEl.value && targetEl.value.trim() && !targetEl.dataset.autoTrans) return;
+        
+        // 移除该目标之前可能排队的翻译
+        translateQueue = translateQueue.filter(item => item.targetId !== targetId);
+        
+        // 加入翻译队列
+        translateQueue.push({text: zhText, from:'zh-CN', to: code, targetId, label, zhId});
+    });
+    
+    processTranslateQueue();
+}
+
+function showTranslateStatus(zhId, show){
+    // 在中文输入框旁边显示翻译中提示
+    const zhEl = document.getElementById(zhId);
+    if(!zhEl) return;
+    let statusEl = zhEl.parentElement.querySelector('.trans-status');
+    if(show){
+        if(!statusEl){
+            statusEl = document.createElement('span');
+            statusEl.className = 'trans-status';
+            statusEl.style.cssText = 'font-size:11px;color:#38bdf8;margin-top:2px;display:flex;align-items:center;gap:4px';
+            zhEl.parentElement.appendChild(statusEl);
+        }
+        statusEl.innerHTML = '<i class="fas fa-spinner fa-spin" style="font-size:10px"></i> 正在自动翻译...';
+    } else {
+        if(statusEl) statusEl.remove();
+    }
+}
+
+async function processTranslateQueue(){
+    if(isTranslating) return;
+    if(translateQueue.length === 0) return;
+    isTranslating = true;
+    let lastZhId = null;
+    
+    while(translateQueue.length > 0){
+        const item = translateQueue.shift();
+        lastZhId = item.zhId;
+        const cacheKey = item.from+'|'+item.to+'|'+item.text;
+        
+        let translated;
+        if(TRANSLATE_CACHE[cacheKey]){
+            translated = TRANSLATE_CACHE[cacheKey];
+        } else {
+            try {
+                const langPair = item.from+'|'+item.to;
+                const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(item.text)}&langpair=${langPair}`;
+                const resp = await fetch(url);
+                const data = await resp.json();
+                if(data.responseStatus === 200 && data.responseData){
+                    translated = data.responseData.translatedText;
+                    TRANSLATE_CACHE[cacheKey] = translated;
+                }
+            } catch(e){
+                // 翻译失败，跳过
+            }
+        }
+        
+        if(translated){
+            const targetEl = document.getElementById(item.targetId);
+            if(targetEl){
+                targetEl.value = translated;
+                targetEl.dataset.autoTrans = 'true';
+                // 添加视觉提示：浅蓝色边框 + 标记
+                targetEl.style.borderColor = '#38bdf8';
+                targetEl.style.boxShadow = '0 0 0 1px rgba(56,189,248,0.3)';
+                // 在输入框后添加翻译来源标记
+                let transTag = targetEl.parentElement.querySelector('.trans-tag');
+                if(!transTag){
+                    transTag = document.createElement('span');
+                    transTag.className = 'trans-tag';
+                    transTag.style.cssText = 'font-size:10px;color:#38bdf8;margin-top:1px;display:flex;align-items:center;gap:3px';
+                    targetEl.parentElement.appendChild(transTag);
+                }
+                transTag.innerHTML = '<i class="fas fa-language"></i> 自动翻译（点击编辑覆盖）';
+                // 用户手动编辑后恢复样式
+                targetEl.addEventListener('focus', function clearHint(){
+                    this.style.borderColor = '';
+                    this.style.boxShadow = '';
+                    delete this.dataset.autoTrans;
+                    const tag = this.parentElement.querySelector('.trans-tag');
+                    if(tag) tag.remove();
+                    this.removeEventListener('focus', clearHint);
+                });
+                // 在对应语言 tab 按钮上添加翻译标记小圆点
+                markLangTabTranslated(item.targetId, item.to);
+            }
+        }
+        
+        // 避免请求过快
+        await new Promise(r => setTimeout(r, 350));
+    }
+    
+    // 翻译完成，移除状态提示
+    if(lastZhId) showTranslateStatus(lastZhId, false);
+    isTranslating = false;
+    
+    // 检查是否还有排队任务（可能在翻译过程中新加入的）
+    if(translateQueue.length > 0) processTranslateQueue();
+}
+
+// 在语言 tab 按钮上标记已自动翻译
+function markLangTabTranslated(targetId, langCode){
+    // 从 targetId 推算出 lang-tab 的 prefix
+    // ID 格式: prefix_index_lang_field 或 prefix_lang_field
+    // 需要找到包含该输入框的 card 中的 lang-tabs
+    const targetEl = document.getElementById(targetId);
+    if(!targetEl) return;
+    
+    // 向上找到 card-body，然后找 lang-tab
+    const cardBody = targetEl.closest('.card-body');
+    if(!cardBody) return;
+    
+    const langTab = cardBody.querySelector(`.lang-tab[data-lang="${langCode}"]`);
+    if(!langTab) return;
+    
+    // 添加翻译小圆点标记
+    if(!langTab.querySelector('.trans-dot')){
+        const dot = document.createElement('span');
+        dot.className = 'trans-dot';
+        dot.style.cssText = 'display:inline-block;width:6px;height:6px;background:#38bdf8;border-radius:50%;margin-left:4px;vertical-align:middle';
+        dot.title = '已自动翻译';
+        langTab.appendChild(dot);
+    }
 }
 
 function imgUploader(id, currentImg, width, height){
@@ -975,8 +1150,71 @@ function renderSettings(main){
         <div class="form-group"><label>分支</label><input type="text" class="token-input" id="set_branch" value="${escHtml(s.branch)}" placeholder="main"></div>
         <p style="color:var(--text3);font-size:13px;margin-top:8px"><i class="fas fa-info-circle"></i> Token 只保存在你的浏览器本地，不会上传到任何服务器。需要 repo 权限的 Token。</p>
     </div></div>`;
+    // 一键翻译区域
+    html += `<div class="card" style="margin-top:16px"><div class="card-body">
+        <h3 style="margin-bottom:12px;display:flex;align-items:center;gap:8px"><i class="fas fa-language" style="color:var(--blue)"></i> 自动翻译工具</h3>
+        <p style="color:var(--text2);font-size:13px;margin-bottom:16px">将所有中文内容自动翻译为英文、西班牙语、葡萄牙语。已有非自动翻译内容的字段不会被覆盖。</p>
+        <button class="btn btn-blue" id="btnTranslateAll" onclick="translateAllModules()"><i class="fas fa-globe"></i> 一键翻译所有模块</button>
+        <div id="translateAllLog" style="margin-top:12px;display:none;background:var(--bg);border-radius:8px;padding:12px;font-size:13px;max-height:200px;overflow-y:auto;line-height:1.6;color:var(--text2)"></div>
+    </div></div>`;
     html += `<button class="btn btn-success" onclick="saveSettings()"><i class="fas fa-save"></i> 保存设置</button></div>`;
     main.innerHTML = html;
+}
+
+// 一键翻译所有模块
+async function translateAllModules(){
+    const btn = document.getElementById('btnTranslateAll');
+    const logEl = document.getElementById('translateAllLog');
+    if(!btn || !logEl) return;
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 翻译中...';
+    logEl.style.display = 'block';
+    logEl.innerHTML = '';
+    
+    // 收集当前页面所有中文输入框
+    const zhInputs = document.querySelectorAll('input[data-auto-trans-src], textarea[data-auto-trans-src]');
+    // 也通过 onchange/oninput 属性检测
+    const allInputs = document.querySelectorAll('input[oninput*="debounceTranslate"], textarea[oninput*="debounceTranslate"]');
+    
+    if(allInputs.length === 0){
+        logEl.innerHTML = '<span style="color:var(--text3)">未找到可翻译的中文内容。请先切换到具体模块页面。</span>';
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-globe"></i> 一键翻译所有模块';
+        return;
+    }
+    
+    logEl.innerHTML += `<div style="color:var(--blue)">找到 ${allInputs.length} 个中文输入框，开始翻译...</div>`;
+    
+    let translated = 0;
+    let skipped = 0;
+    
+    for(const input of allInputs){
+        const val = input.value || '';
+        if(!val.trim()){
+            skipped++;
+            continue;
+        }
+        const id = input.id;
+        logEl.innerHTML += `<div>翻译: ${id} = "${val.substring(0,30)}${val.length>30?'...':''}"</div>`;
+        logEl.scrollTop = logEl.scrollHeight;
+        
+        autoTranslate(id, val);
+        
+        // 等待翻译完成（简单等待）
+        await new Promise(r => setTimeout(r, 1200));
+        translated++;
+    }
+    
+    // 等待队列处理完成
+    await new Promise(r => setTimeout(r, 2000));
+    
+    logEl.innerHTML += `<div style="color:var(--green);margin-top:8px;font-weight:600">✓ 翻译完成！已翻译 ${translated} 项，跳过空值 ${skipped} 项</div>`;
+    logEl.innerHTML += `<div style="color:var(--text3);margin-top:4px">切换到对应语言 tab 查看翻译结果。点击输入框可手动修改。</div>`;
+    
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-globe"></i> 一键翻译所有模块';
+    showToast('翻译完成！','success');
 }
 
 function saveSettings(){
