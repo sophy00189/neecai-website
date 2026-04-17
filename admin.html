@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neecai 网站管理后台</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0f172a;--bg2:#1e293b;--bg3:#334155;--accent:#ff6b35;--accent2:#ff8c42;--blue:#38bdf8;--green:#22c55e;--red:#ef4444;--text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;--border:#475569;--radius:10px}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.header{background:var(--bg2);border-bottom:1px solid var(--border);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.header h1{font-size:20px;display:flex;align-items:center;gap:10px}
+.header h1 i{color:var(--accent);font-size:22px}
+.header-actions{display:flex;gap:10px;align-items:center}
+.btn{padding:8px 18px;border-radius:8px;border:none;cursor:pointer;font-size:14px;font-weight:600;font-family:inherit;display:inline-flex;align-items:center;gap:6px;transition:all .2s}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:var(--accent2);transform:translateY(-1px)}
+.btn-success{background:var(--green);color:#fff}.btn-success:hover{opacity:.9}
+.btn-danger{background:var(--red);color:#fff}.btn-danger:hover{opacity:.9}
+.btn-secondary{background:var(--bg3);color:var(--text)}.btn-secondary:hover{background:var(--border)}
+.btn-blue{background:var(--blue);color:#fff}.btn-blue:hover{opacity:.9}
+.layout{display:flex;min-height:calc(100vh - 60px)}
+.sidebar{width:220px;background:var(--bg2);border-right:1px solid var(--border);padding:12px 0;flex-shrink:0}
+.nav-item{padding:12px 20px;cursor:pointer;display:flex;align-items:center;gap:10px;font-size:14px;color:var(--text2);transition:all .2s;border-left:3px solid transparent}
+.nav-item:hover{background:rgba(255,107,53,.06);color:var(--text)}
+.nav-item.active{background:rgba(255,107,53,.1);color:var(--accent);border-left-color:var(--accent)}
+.nav-item i{width:18px;text-align:center;font-size:15px}
+.main{flex:1;padding:24px;overflow-y:auto;max-height:calc(100vh - 60px)}
+.panel{display:none}.panel.active{display:block}
+.panel-title{font-size:22px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:10px}
+.panel-title i{color:var(--accent)}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;cursor:pointer}
+.card-header h3{font-size:16px;display:flex;align-items:center;gap:8px}
+.card-header h3 i{color:var(--accent);font-size:14px}
+.card-toggle{color:var(--text3);font-size:12px}
+.card-body{display:grid;gap:14px}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-group label{font-size:12px;color:var(--text2);font-weight:600}
+.form-group input,.form-group textarea,.form-group select{padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;font-family:inherit;outline:none;transition:border .2s}
+.form-group input:focus,.form-group textarea:focus,.form-group select:focus{border-color:var(--accent)}
+.form-group textarea{resize:vertical;min-height:60px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-row-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:14px}
+.lang-tabs{display:flex;gap:4px;margin-bottom:12px;background:var(--bg);border-radius:8px;padding:4px}
+.lang-tab{padding:6px 16px;border-radius:6px;border:none;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;background:transparent;color:var(--text3);transition:all .2s}
+.lang-tab.active{background:var(--accent);color:#fff}
+.img-upload{border:2px dashed var(--border);border-radius:var(--radius);padding:24px;text-align:center;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.img-upload:hover{border-color:var(--accent);background:rgba(255,107,53,.04)}
+.img-upload input{display:none}
+.img-upload i{font-size:28px;color:var(--text3);margin-bottom:8px}
+.img-upload p{font-size:13px;color:var(--text3)}
+.img-preview{max-width:100%;max-height:160px;border-radius:8px;margin-top:8px}
+.img-preview-wrap{position:relative;display:inline-block}
+.img-remove{position:absolute;top:4px;right:4px;background:var(--red);color:#fff;border:none;border-radius:50%;width:24px;height:24px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center}
+.token-input{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:14px;width:100%;font-family:monospace;outline:none}
+.token-input:focus{border-color:var(--accent)}
+.status-bar{position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;justify-content:space-between;font-size:13px;z-index:100}
+.toast{position:fixed;top:80px;right:24px;padding:14px 22px;border-radius:10px;font-size:14px;font-weight:600;z-index:10000;transform:translateX(120%);transition:transform .3s}
+.toast.show{transform:translateX(0)}
+.toast-success{background:var(--green);color:#fff}
+.toast-error{background:var(--red);color:#fff}
+.toast-info{background:var(--blue);color:#fff}
+.publish-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);z-index:10000;display:flex;align-items:center;justify-content:center}
+.publish-modal{background:var(--bg2);border:1px solid var(--accent);border-radius:16px;padding:30px;max-width:480px;width:90%}
+.publish-modal h2{text-align:center;margin-bottom:20px}
+.publish-log{background:var(--bg);border-radius:8px;padding:14px;max-height:260px;overflow-y:auto;font-family:monospace;font-size:13px;line-height:1.6;color:var(--text2)}
+.publish-log .ok{color:var(--green)}.publish-log .err{color:var(--red)}.publish-log .info{color:var(--blue)}
+@media(max-width:768px){.layout{flex-direction:column}.sidebar{width:100%;display:flex;overflow-x:auto;padding:8px}.nav-item{padding:8px 14px;white-space:nowrap;border-left:none;border-bottom:2px solid transparent}.nav-item.active{border-bottom-color:var(--accent);border-left-color:transparent}.form-row,.form-row-4{grid-template-columns:1fr}}
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+
+<div class="header">
+    <h1><i class="fas fa-bolt"></i> Neecai 网站管理后台</h1>
+    <div class="header-actions">
+        <button class="btn btn-secondary" onclick="exportJSON()"><i class="fas fa-download"></i> 导出数据</button>
+        <button class="btn btn-secondary" onclick="importJSON()"><i class="fas fa-upload"></i> 导入数据</button>
+        <button class="btn btn-primary" onclick="startPublish()"><i class="fas fa-rocket"></i> 一键发布</button>
+    </div>
+</div>
+
+<div class="layout">
+    <div class="sidebar">
+        <div class="nav-item active" data-panel="products"><i class="fas fa-box"></i> 产品管理</div>
+        <div class="nav-item" data-panel="solutions"><i class="fas fa-puzzle-piece"></i> 解决方案</div>
+        <div class="nav-item" data-panel="cases"><i class="fas fa-images"></i> 经典案例</div>
+        <div class="nav-item" data-panel="hero"><i class="fas fa-home"></i> 首页区域</div>
+        <div class="nav-item" data-panel="about"><i class="fas fa-building"></i> 公司信息</div>
+        <div class="nav-item" data-panel="contact"><i class="fas fa-phone"></i> 联系方式</div>
+        <div class="nav-item" data-panel="settings"><i class="fas fa-cog"></i> 发布设置</div>
+    </div>
+    <div class="main" id="mainContent">
+        <!-- 由 JS 动态渲染 -->
+    </div>
+</div>
+
+<div class="status-bar">
+    <span id="statusText">就绪</span>
+    <span id="lastSave">未保存</span>
+</div>
+
+<input type="file" id="importFile" accept=".json" style="display:none">
+
+<script>
+// ========== 数据模型 ==========
+const LANGS = ['zh','en','es','pt'];
+const LANG_NAMES = {zh:'中文',en:'English',es:'Español',pt:'Português'};
+
+const DEFAULT_DATA = {
+    products: [
+        {id:'fire',icon:'fas fa-fire',img:'',zh:{title:'火焰特效',desc:'专业级舞台火焰机，喷射高度可达8-10米，支持DMX512控制，瞬间点燃全场氛围。',f1:'多种火焰形态',f2:'智能安全防护',f3:'DMX512控制'},en:{title:'Fire Effects',desc:'Professional stage flame machines, 8-10m shooting height, DMX512 control, instantly igniting the atmosphere.',f1:'Multiple Flame Patterns',f2:'Smart Safety Protection',f3:'DMX512 Control'},es:{title:'Efectos de Fuego',desc:'Máquinas de llama profesionales, 8-10m de altura, control DMX512.',f1:'Múltiples Patrones',f2:'Protección Inteligente',f3:'Control DMX512'},pt:{title:'Efeitos de Fogo',desc:'Máquinas de chama profissionais, 8-10m de altura, controle DMX512.',f1:'Múltiplos Padrões',f2:'Proteção Inteligente',f3:'Controle DMX512'}},
+        {id:'spark',icon:'fas fa-star-half-alt',img:'',zh:{title:'火花特效',desc:'冷火花机系列，无烟无味安全环保，可变高度与密度，打造如梦如幻的视觉盛宴。',f1:'冷火花技术',f2:'可调喷射高度',f3:'防水等级IP55'},en:{title:'Spark Effects',desc:'Cold spark machines — smokeless, odorless, eco-friendly with adjustable height and density for dreamlike visuals.',f1:'Cold Spark Technology',f2:'Adjustable Height',f3:'IP55 Waterproof'},es:{title:'Efectos de Chispas',desc:'Máquinas de chispas frías, sin humo ni olor, ecológicas.',f1:'Tecnología Fría',f2:'Altura Ajustable',f3:'IP55 Impermeable'},pt:{title:'Efeitos de Faíscas',desc:'Máquinas de faíscas frias, sem fumaça, ecológicas.',f1:'Tecnologia Fria',f2:'Altura Ajustável',f3:'IP55 Impermeável'}},
+        {id:'smoke',icon:'fas fa-cloud',img:'',zh:{title:'烟雾特效',desc:'大功率烟雾机与低烟机，快速铺满舞台，配合灯光营造梦幻层次感。',f1:'超大烟量输出',f2:'低烟贴地效果',f3:'环保配方'},en:{title:'Smoke Effects',desc:'High-power fog and low-lying smoke machines, quickly covering the stage with dreamy layered effects.',f1:'Massive Output',f2:'Low-Lying Fog',f3:'Eco-Friendly Formula'},es:{title:'Efectos de Humo',desc:'Máquinas de humo de alta potencia y humo bajo.',f1:'Gran Salida',f2:'Humo Bajo',f3:'Fórmula Ecológica'},pt:{title:'Efeitos de Fumaça',desc:'Máquinas de fumaça de alta potência e fumaça baixa.',f1:'Grande Saída',f2:'Fumaça Baixa',f3:'Fórmula Ecológica'}},
+        {id:'confetti',icon:'fas fa-gift',img:'',zh:{title:'彩花特效',desc:'电动彩花机与礼炮，瞬间喷射漫天彩纸彩带，将现场气氛推至最高潮。',f1:'多彩多形态',f2:'远距离喷射',f3:'遥控触发'},en:{title:'Confetti Effects',desc:'Electric confetti cannons and streamer shooters, instantly filling the air with color and pushing excitement to the peak.',f1:'Multi-Color & Shapes',f2:'Long-Range Shooting',f3:'Remote Trigger'},es:{title:'Efectos de Confeti',desc:'Cañones de confeti eléctricos, llenando el aire de color.',f1:'Multi-Color',f2:'Largo Alcance',f3:'Disparo Remoto'},pt:{title:'Efeitos de Confete',desc:'Canhões de confete elétricos, enchendo o ar de cor.',f1:'Multi-Cor',f2:'Longo Alcance',f3:'Disparo Remoto'}},
+        {id:'light',icon:'fas fa-lightbulb',img:'',zh:{title:'智能灯光',desc:'专业舞台灯光系统，包含光束灯、染色灯、追光灯，打造极致光影艺术。',f1:'全彩RGBW',f2:'超高亮度',f3:'无限联动'},en:{title:'Intelligent Lighting',desc:'Professional stage lighting systems — beam, wash, and follow spots creating the ultimate light art.',f1:'Full RGBW Color',f2:'Ultra-High Brightness',f3:'Unlimited Linking'},es:{title:'Iluminación Inteligente',desc:'Sistemas de iluminación profesional para escenarios.',f1:'RGBW Completo',f2:'Ultra Brillo',f3:'Enlace Ilimitado'},pt:{title:'Iluminação Inteligente',desc:'Sistemas de iluminação profissional para palcos.',f1:'RGBW Completo',f2:'Ultra Brilho',f3:'Link Ilimitado'}},
+        {id:'holo',icon:'fas fa-cube',img:'',zh:{title:'全息投影',desc:'裸眼3D全息投影系统，虚实融合沉浸式体验，开创舞台视觉新纪元。',f1:'裸眼3D效果',f2:'超高清画质',f3:'定制内容'},en:{title:'Holographic Projection',desc:'Glasses-free 3D holographic systems, blending virtual and real for a new era of stage visuals.',f1:'Glasses-Free 3D',f2:'Ultra HD Quality',f3:'Custom Content'},es:{title:'Proyección Holográfica',desc:'Sistemas holográficos 3D sin gafas, mezclando virtual y real.',f1:'3D Sin Gafas',f2:'Calidad Ultra HD',f3:'Contenido Personalizado'},pt:{title:'Projeção Holográfica',desc:'Sistemas holográficos 3D sem óculos, misturando virtual e real.',f1:'3D Sem Óculos',f2:'Qualidade Ultra HD',f3:'Conteúdo Personalizado'}}
+    ],
+    solutions: [
+        {id:'concert',icon:'fas fa-music',zh:{tab:'演唱会',title:'演唱会特效方案',desc:'我们为演唱会提供从设计到执行的全方位特效解决方案。结合艺人风格与曲目编排，打造沉浸式的视听盛宴。',f1_t:'火焰+火花联动',f1_d:'高潮段落火焰与火花同步触发，震撼力拉满',f2_t:'灯光+烟雾编排',f2_d:'精准的时间码同步，灯光与烟雾完美配合',f3_t:'定制化编程',f3_d:'根据演出编排逐帧编程，每个特效精准触发'},en:{tab:'Concert',title:'Concert Effects Solution',desc:'Comprehensive effects solutions from design to execution. Combining artist style with setlist arrangements for an immersive audio-visual feast.',f1_t:'Fire + Spark Sync',f1_d:'Flames and sparks triggered simultaneously at climax moments',f2_t:'Lighting + Smoke Choreography',f2_d:'Precise timecode sync for perfect lighting-smoke coordination',f3_t:'Custom Programming',f3_d:'Frame-by-frame programming with precise effect triggering'},es:{tab:'Concierto',title:'Solución de Efectos para Conciertos',desc:'Soluciones integrales desde el diseño hasta la ejecución.',f1_t:'Fuego + Chispas',f1_d:'Llamas y chispas sincronizadas',f2_t:'Luz + Humo',f2_d:'Sincronización precisa de tiempo',f3_t:'Programación Personalizada',f3_d:'Programación fotograma a fotograma'},pt:{tab:'Concerto',title:'Solução de Efeitos para Concertos',desc:'Soluções abrangentes do design à execução.',f1_t:'Fogo + Faíscas',f1_d:'Chamas e faíscas sincronizadas',f2_t:'Luz + Fumaça',f2_d:'Sincronização precisa de tempo',f3_t:'Programação Personalizada',f3_d:'Programação quadro a quadro'}},
+        {id:'theater',icon:'fas fa-theater-masks',zh:{tab:'剧院演出',title:'剧院演出特效方案',desc:'为话剧、音乐剧、舞剧等提供精准可控的特效支持，让艺术表达更上一层楼。',f1_t:'精准可控',f1_d:'每一帧特效都可精确预编程，与演员走位完美同步',f2_t:'安全至上',f2_d:'多重安全保护机制，确保演员与观众安全',f3_t:'氛围营造',f3_d:'细腻的低烟与灯光配合，营造梦幻舞台氛围'},en:{tab:'Theater',title:'Theater Effects Solution',desc:'Precise and controllable effects support for drama, musicals, and dance performances.',f1_t:'Precision Control',f1_d:'Every effect frame pre-programmed to sync perfectly with actor positions',f2_t:'Safety First',f2_d:'Multiple safety mechanisms ensuring performer and audience safety',f3_t:'Atmosphere Creation',f3_d:'Delicate low smoke and lighting coordination for dreamy stage ambiance'},es:{tab:'Teatro',title:'Solución de Efectos para Teatro',desc:'Soporte de efectos preciso y controlable para obras de teatro.',f1_t:'Control Preciso',f1_d:'Cada efecto pre-programado para sincronizar',f2_t:'Seguridad Primero',f2_d:'Múltiples mecanismos de seguridad',f3_t:'Creación de Ambiente',f3_d:'Humo bajo e iluminación coordinados'},pt:{tab:'Teatro',title:'Solução de Efeitos para Teatro',desc:'Suporte de efeitos preciso para peças de teatro.',f1_t:'Controle Preciso',f1_d:'Cada efeito pré-programado',f2_t:'Segurança Primeiro',f2_d:'Múltiplos mecanismos de segurança',f3_t:'Criação de Atmosfera',f3_d:'Fumaça baixa e iluminação coordenadas'}},
+        {id:'festival',icon:'fas fa-campground',zh:{tab:'音乐节',title:'音乐节特效方案',desc:'大型户外音乐节全场景特效覆盖，从主舞台到氛围区，制造全场嗨点。',f1_t:'超大规模部署',f1_d:'数百台设备联动，覆盖万人级场地',f2_t:'全天候适应',f2_d:'防水防尘设计，无惧户外恶劣天气',f3_t:'无线组网控制',f3_d:'无线DMX组网，快速部署灵活调整'},en:{tab:'Festival',title:'Festival Effects Solution',desc:'Full-scene effects coverage for large outdoor music festivals, from main stage to vibe zones.',f1_t:'Massive Deployment',f1_d:'Hundreds of devices linked, covering 10,000+ capacity venues',f2_t:'All-Weather Ready',f2_d:'Waterproof and dust-proof design, fearless in harsh outdoor conditions',f3_t:'Wireless DMX Network',f3_d:'Wireless DMX networking for rapid deployment and flexible adjustment'},es:{tab:'Festival',title:'Solución de Efectos para Festivales',desc:'Cobertura completa de efectos para grandes festivales al aire libre.',f1_t:'Despliegue Masivo',f1_d:'Cientos de dispositivos vinculados',f2_t:'Listo para Todo Clima',f2_d:'Diseño impermeable y antipolvo',f3_t:'Red DMX Inalámbrica',f3_d:'Red DMX inalámbrica para despliegue rápido'},pt:{tab:'Festival',title:'Solução de Efeitos para Festivais',desc:'Cobertura completa de efeitos para grandes festivais ao ar livre.',f1_t:'Implantação Massiva',f1_d:'Centenas de dispositivos vinculados',f2_t:'Pronto para Todo Clima',f2_d:'Design à prova d\'água e poeira',f3_t:'Rede DMX Sem Fio',f3_d:'Rede DMX sem fio para implantação rápida'}},
+        {id:'corporate',icon:'fas fa-building',zh:{tab:'企业活动',title:'企业活动特效方案',desc:'发布会、年会、庆典等企业活动特效方案，提升品牌形象与活动质感。',f1_t:'品牌定制',f1_d:'特效色彩与形态匹配品牌VI，强化品牌记忆',f2_t:'快速部署',f2_d:'模块化设备，2小时完成安装调试',f3_t:'互动体验',f3_d:'观众互动特效触发，增强参与感'},en:{tab:'Corporate',title:'Corporate Event Effects Solution',desc:'Effects solutions for product launches, annual galas, and celebrations to elevate brand image.',f1_t:'Brand Customization',f1_d:'Effects colors and patterns matching brand VI for stronger brand recall',f2_t:'Rapid Deployment',f2_d:'Modular equipment, 2-hour installation and calibration',f3_t:'Interactive Experience',f3_d:'Audience-interactive effect triggers for enhanced engagement'},es:{tab:'Corporativo',title:'Solución de Efectos para Eventos Corporativos',desc:'Soluciones de efectos para lanzamientos, galas y celebraciones.',f1_t:'Personalización de Marca',f1_d:'Colores y patrones de efectos que coinciden con la VI de marca',f2_t:'Despliegue Rápido',f2_d:'Equipo modular, instalación en 2 horas',f3_t:'Experiencia Interactiva',f3_d:'Disparadores de efectos interactivos para el público'},pt:{tab:'Corporativo',title:'Solução de Efeitos para Eventos Corporativos',desc:'Soluções de efeitos para lançamentos, galas e celebrações.',f1_t:'Personalização de Marca',f1_d:'Cores e padrões de efeitos que combinam com a VI da marca',f2_t:'Implantação Rápida',f2_d:'Equipamento modular, instalação em 2 horas',f3_t:'Experiência Interativa',f3_d:'Gatilhos de efeitos interativos para o público'}},
+        {id:'wedding',icon:'fas fa-heart',zh:{tab:'婚礼庆典',title:'婚礼庆典特效方案',desc:'浪漫冷火花、梦幻烟雾、星空投影……让每一对新人的高光时刻终身难忘。',f1_t:'浪漫冷火花',f1_d:'安全无烟的冷火花走道，新人入场仪式感拉满',f2_t:'星空投影',f2_d:'穹顶星空投影，打造浪漫梦幻空间',f3_t:'仙气烟雾',f3_d:'低烟贴地效果，如临仙境'},en:{tab:'Wedding',title:'Wedding Effects Solution',desc:'Romantic cold sparks, dreamy smoke, starry projections... making every couple\'s highlight moment unforgettable.',f1_t:'Romantic Cold Sparks',f1_d:'Safe smokeless cold spark walkway for grand entrance ceremony',f2_t:'Starry Projection',f2_d:'Dome star projection creating a romantic dreamy space',f3_t:'Fairy Smoke',f3_d:'Low-lying fog effect creating a fairy-tale atmosphere'},es:{tab:'Boda',title:'Solución de Efectos para Bodas',desc:'Chispas frías románticas, humo de ensueño, proyecciones estrelladas...',f1_t:'Chispas Frías Románticas',f1_d:'Pasillo de chispas frías seguro sin humo',f2_t:'Proyección Estrellada',f2_d:'Proyección de estrellas en cúpula',f3_t:'Humo de Hada',f3_d:'Efecto de humo bajo creando atmósfera de cuento de hadas'},pt:{tab:'Casamento',title:'Solução de Efeitos para Casamentos',desc:'Faíscas frias românticas, fumaça dos sonhos, projeções estreladas...',f1_t:'Faíscas Frias Românticas',f1_d:'Corredor de faíscas frias seguro sem fumaça',f2_t:'Projeção Estrelada',f2_d:'Projeção de estrelas na cúpula',f3_t:'Fumaça de Fada',f3_d:'Efeito de fumaça baixa criando atmosfera de conto de fadas'}}
+    ],
+    cases: [
+        {id:'c1',tag:'concert',img:'',zh:{title:'超级巨星巡回演唱会',desc:'12城巡演，128台火焰机+96台火花机联动，创造国内演唱会特效规模之最'},en:{title:'Superstar Tour Concert',desc:'12-city tour, 128 flame machines + 96 spark machines linked, setting a new record for concert effects scale in China'},es:{title:'Gira de Concierto de Superestrella',desc:'Gira de 12 ciudades, 128 máquinas de llama + 96 máquinas de chispas'},pt:{title:'Turnê de Concerto de Superstar',desc:'Turnê de 12 cidades, 128 máquinas de chama + 96 máquinas de faíscas'}},
+        {id:'c2',tag:'tv',img:'',zh:{title:'跨年晚会舞台特效',desc:'5小时直播零失误，全息投影+智能灯光融合'},en:{title:'New Year\'s Eve Gala Effects',desc:'5-hour live broadcast zero errors, holographic projection + intelligent lighting fusion'},es:{title:'Efectos de Gala de Año Nuevo',desc:'5 horas de transmisión en vivo sin errores'},pt:{title:'Efeitos de Gala de Ano Novo',desc:'5 horas de transmissão ao vivo sem erros'}},
+        {id:'c3',tag:'festival',img:'',zh:{title:'电音嘉年华',desc:'3天5万人，激光+烟雾+彩花全场联动'},en:{title:'EDM Carnival',desc:'3 days, 50,000 people, laser + smoke + confetti full-venue synchronization'},es:{title:'Carnaval de Música Electrónica',desc:'3 días, 50.000 personas, láser + humo + confeti'},pt:{title:'Carnaval de Música Eletrônica',desc:'3 dias, 50.000 pessoas, laser + fumaça + confete'}},
+        {id:'c4',tag:'corp',img:'',zh:{title:'科技品牌发布会',desc:'品牌色定制特效，全球直播同步触发'},en:{title:'Tech Brand Launch Event',desc:'Brand-color customized effects, global live stream synchronized trigger'},es:{title:'Lanzamiento de Marca Tecnológica',desc:'Efectos personalizados con colores de marca'},pt:{title:'Lançamento de Marca de Tecnologia',desc:'Efeitos personalizados com cores da marca'}},
+        {id:'c5',tag:'wedding',img:'',zh:{title:'海岛婚礼盛典',desc:'冷火花走道+星空穹顶，梦幻至极'},en:{title:'Island Wedding Ceremony',desc:'Cold spark walkway + starry dome, absolutely dreamy'},es:{title:'Boda en la Isla',desc:'Pasillo de chispas frías + cúpula estrellada'},pt:{title:'Casamento na Ilha',desc:'Corredor de faíscas frias + cúpula estrelada'}}
+    ],
+    hero: {
+        zh:{badge:'行业领先的舞台特效解决方案',t1:'点亮每一场',t2:'震撼演出',desc:'从火花喷射到全息投影，从智能灯光到沉浸式体验——<br>我们用科技与艺术，为每一场舞台注入灵魂。'},
+        en:{badge:'Industry-Leading Stage Effects Solutions',t1:'Ignite Every',t2:'Spectacular Show',desc:'From spark fountains to holographic projections, from intelligent lighting to immersive experiences—<br>We infuse every stage with soul through technology and art.'},
+        es:{badge:'Soluciones de Efectos Escénicos Líderes en la Industria',t1:'Enciende Cada',t2:'Espectáculo Espectacular',desc:'Desde fuentes de chispas hasta proyecciones holográficas—<br>Infundimos cada escenario con alma a través de tecnología y arte.'},
+        pt:{badge:'Soluções de Efeitos Cênicos Líderes na Indústria',t1:'Acenda Cada',t2:'Espetáculo Espetacular',desc:'De fontes de faíscas a projeções holográficas—<br>Infundimos cada palco com alma através de tecnologia e arte.'}
+    },
+    stats: {years:15,projects:3000,countries:50,patents:36},
+    about: {
+        zh:{title:'关于霓彩舞台设备',lead:'我们不只是制造设备，<br>我们是<strong>舞台奇迹的创造者</strong>。',p1:'霓彩舞台设备（Neecai）成立于2010年，是一家集研发、生产、销售、服务于一体的高新技术企业。我们专注于舞台特效设备的创新与应用，产品涵盖火焰特效、火花特效、烟雾特效、智能灯光、全息投影等全品类。',p2:'15年来，我们服务了超过3000场演出活动，产品远销全球50多个国家和地区，与众多顶级演出团队建立了长期合作关系。'},
+        en:{title:'About Neecai',lead:'We don\'t just make equipment—<br>we are <strong>creators of stage miracles</strong>.',p1:'Neecai, founded in 2010, is a high-tech enterprise integrating R&D, production, sales, and service. We focus on innovation and application of stage effects equipment, covering fire effects, spark effects, smoke effects, intelligent lighting, holographic projection, and more.',p2:'Over 15 years, we have served more than 3,000 performance events, with products exported to over 50 countries and regions worldwide, and have established long-term partnerships with numerous top performance teams.'},
+        es:{title:'Sobre Neecai',lead:'No solo fabricamos equipos—<br>somos <strong>creadores de milagros escénicos</strong>.',p1:'Neecai, fundada en 2010, es una empresa de alta tecnología que integra I+D, producción, ventas y servicio.',p2:'En 15 años, hemos servido más de 3.000 eventos en más de 50 países.'},
+        pt:{title:'Sobre a Neecai',lead:'Não apenas fabricamos equipamentos—<br>somos <strong>criadores de milagres de palco</strong>.',p1:'Neecai, fundada em 2010, é uma empresa de alta tecnologia que integra P&D, produção, vendas e serviço.',p2:'Em 15 anos, servimos mais de 3.000 eventos em mais de 50 países.'}
+    },
+    contact: {
+        phone:'+86 400-888-6688',
+        email:'info@neecai.net',
+        address_zh:'北京市朝阳区文化创意园A座8层',
+        address_en:'8F, Building A, Cultural Creative Park, Chaoyang, Beijing',
+        address_es:'8ª Planta, Edificio A, Parque Cultural Creativo, Chaoyang, Beijing',
+        address_pt:'8º Andar, Edifício A, Parque Cultural Criativo, Chaoyang, Pequim'
+    },
+    settings: {
+        githubToken:'',
+        repo:'sophy00189/neecai-website',
+        branch:'main'
+    }
+};
+
+// ========== 状态管理 ==========
+let siteData = {};
+function loadData(){
+    const saved = localStorage.getItem('neecai_admin_data');
+    siteData = saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(DEFAULT_DATA));
+}
+function saveData(){
+    localStorage.setItem('neecai_admin_data', JSON.stringify(siteData));
+    document.getElementById('lastSave').textContent = '已保存 ' + new Date().toLocaleTimeString();
+}
+loadData();
+
+// ========== 导航 ==========
+document.querySelectorAll('.nav-item').forEach(item=>{
+    item.addEventListener('click',()=>{
+        document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+        item.classList.add('active');
+        renderPanel(item.dataset.panel);
+    });
+});
+
+function renderPanel(name){
+    const main = document.getElementById('mainContent');
+    const renderers = {products:renderProducts, solutions:renderSolutions, cases:renderCases, hero:renderHero, about:renderAbout, contact:renderContact, settings:renderSettings};
+    if(renderers[name]) renderers[name](main);
+}
+
+// ========== 通用组件 ==========
+function langTabs(prefix){
+    return `<div class="lang-tabs" id="lt_${prefix}">${LANGS.map((l,i)=>`<button class="lang-tab${i===0?' active':''}" data-lang="${l}" onclick="switchLang('${prefix}','${l}')">${LANG_NAMES[l]}</button>`).join('')}</div>`;
+}
+
+function switchLang(prefix, lang){
+    const tabs = document.getElementById('lt_'+prefix);
+    tabs.querySelectorAll('.lang-tab').forEach(t=>t.classList.toggle('active',t.dataset.lang===lang));
+    tabs.parentElement.querySelectorAll('[data-lang-field]').forEach(el=>{
+        el.style.display = el.dataset.langField===lang ? '' : 'none';
+    });
+}
+
+function inputGroup(label, id, value, lang, multiline){
+    const display = lang ? '' : '';
+    if(multiline) return `<div class="form-group" ${lang?`data-lang-field="${lang}"`:''}><label>${label}</label><textarea id="${id}" data-key="${id}">${value||''}</textarea></div>`;
+    return `<div class="form-group" ${lang?`data-lang-field="${lang}"`:''}><label>${label}</label><input type="text" id="${id}" value="${escHtml(value||'')}" data-key="${id}"></div>`;
+}
+
+function imgUploader(id, currentImg){
+    return `<div class="img-upload" id="iu_${id}" onclick="document.getElementById('if_${id}').click()">
+        <input type="file" id="if_${id}" accept="image/*" onchange="handleImgUpload('${id}',this)">
+        ${currentImg ? `<img src="${currentImg}" class="img-preview">` : `<i class="fas fa-cloud-upload-alt"></i><p>点击上传图片</p>`}
+    </div>`;
+}
+
+function handleImgUpload(id, input){
+    const file = input.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e){
+        const container = document.getElementById('iu_'+id);
+        container.innerHTML = `<input type="file" id="if_${id}" accept="image/*" onchange="handleImgUpload('${id}',this)"><img src="${e.target.result}" class="img-preview">`;
+        container.dataset.imgData = e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
+function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ========== 产品管理 ==========
+function renderProducts(main){
+    let html = `<div class="panel active"><div class="panel-title"><i class="fas fa-box"></i> 产品管理</div>`;
+    siteData.products.forEach((p,i)=>{
+        html += `<div class="card"><div class="card-header" onclick="toggleCard(this)"><h3><i class="fas fa-chevron-down"></i> ${p.zh.title}</h3><span class="card-toggle">展开/收起</span></div><div class="card-body">`;
+        html += `<div class="form-row">${imgUploader('prod_'+p.id, p.img)}<div style="flex:1;display:flex;flex-direction:column;gap:14px">`;
+        html += inputGroup('产品ID','prod_id_'+i, p.id, null);
+        html += inputGroup('图标 Class','prod_icon_'+i, p.icon, null);
+        html += `</div></div>`;
+        html += langTabs('prod_'+i);
+        LANGS.forEach(l=>{
+            html += `<div data-lang-field="${l}" style="display:${l==='zh'?'':'none'}">`;
+            html += inputGroup('产品名称','prod_'+i+'_'+l+'_title', p[l].title, l);
+            html += inputGroup('产品描述','prod_'+i+'_'+l+'_desc', p[l].desc, l, true);
+            html += `<div class="form-row-4">`;
+            html += inputGroup('特性1','prod_'+i+'_'+l+'_f1', p[l].f1, l);
+            html += inputGroup('特性2','prod_'+i+'_'+l+'_f2', p[l].f2, l);
+            html += inputGroup('特性3','prod_'+i+'_'+l+'_f3', p[l].f3, l);
+            html += `</div></div>`;
+        });
+        html += `<div style="text-align:right"><button class="btn btn-danger" onclick="removeProduct(${i})"><i class="fas fa-trash"></i> 删除产品</button></div>`;
+        html += `</div></div>`;
+    });
+    html += `<button class="btn btn-primary" onclick="addProduct()"><i class="fas fa-plus"></i> 添加产品</button>`;
+    html += `<div style="margin-top:16px"><button class="btn btn-success" onclick="saveProducts()"><i class="fas fa-save"></i> 保存产品</button></div></div>`;
+    main.innerHTML = html;
+}
+
+function addProduct(){
+    const id = 'product_' + Date.now();
+    siteData.products.push({id:id,icon:'fas fa-star',img:'',
+        zh:{title:'新产品',desc:'产品描述',f1:'特性1',f2:'特性2',f3:'特性3'},
+        en:{title:'New Product',desc:'Product description',f1:'Feature 1',f2:'Feature 2',f3:'Feature 3'},
+        es:{title:'Nuevo Producto',desc:'Descripción del producto',f1:'Característica 1',f2:'Característica 2',f3:'Característica 3'},
+        pt:{title:'Novo Produto',desc:'Descrição do produto',f1:'Característica 1',f2:'Característica 2',f3:'Característica 3'}
+    });
+    saveData();
+    renderProducts(document.getElementById('mainContent'));
+    showToast('已添加新产品','success');
+}
+
+function removeProduct(i){
+    if(!confirm('确定删除产品 "'+siteData.products[i].zh.title+'" ?')) return;
+    siteData.products.splice(i,1);
+    saveData();
+    renderProducts(document.getElementById('mainContent'));
+    showToast('产品已删除','info');
+}
+
+function saveProducts(){
+    siteData.products.forEach((p,i)=>{
+        p.id = document.getElementById('prod_id_'+i)?.value || p.id;
+        p.icon = document.getElementById('prod_icon_'+i)?.value || p.icon;
+        const iu = document.getElementById('iu_prod_'+p.id);
+        if(iu && iu.dataset.imgData) p.img = iu.dataset.imgData;
+        LANGS.forEach(l=>{
+            p[l].title = document.getElementById('prod_'+i+'_'+l+'_title')?.value || p[l].title;
+            p[l].desc = document.getElementById('prod_'+i+'_'+l+'_desc')?.value || p[l].desc;
+            p[l].f1 = document.getElementById('prod_'+i+'_'+l+'_f1')?.value || p[l].f1;
+            p[l].f2 = document.getElementById('prod_'+i+'_'+l+'_f2')?.value || p[l].f2;
+            p[l].f3 = document.getElementById('prod_'+i+'_'+l+'_f3')?.value || p[l].f3;
+        });
+    });
+    saveData();
+    showToast('产品数据已保存','success');
+}
+
+// ========== 解决方案管理 ==========
+function renderSolutions(main){
+    let html = `<div class="panel active"><div class="panel-title"><i class="fas fa-puzzle-piece"></i> 解决方案管理</div>`;
+    siteData.solutions.forEach((s,i)=>{
+        html += `<div class="card"><div class="card-header" onclick="toggleCard(this)"><h3><i class="fas fa-chevron-down"></i> ${s.zh.title}</h3><span class="card-toggle">展开/收起</span></div><div class="card-body">`;
+        html += langTabs('sol_'+i);
+        LANGS.forEach(l=>{
+            html += `<div data-lang-field="${l}" style="display:${l==='zh'?'':'none'}">`;
+            html += inputGroup('Tab名称','sol_'+i+'_'+l+'_tab', s[l].tab, l);
+            html += inputGroup('方案标题','sol_'+i+'_'+l+'_title', s[l].title, l);
+            html += inputGroup('方案描述','sol_'+i+'_'+l+'_desc', s[l].desc, l, true);
+            html += `<div class="form-row">`;
+            html += inputGroup('特性1标题','sol_'+i+'_'+l+'_f1_t', s[l].f1_t, l);
+            html += inputGroup('特性1描述','sol_'+i+'_'+l+'_f1_d', s[l].f1_d, l);
+            html += `</div><div class="form-row">`;
+            html += inputGroup('特性2标题','sol_'+i+'_'+l+'_f2_t', s[l].f2_t, l);
+            html += inputGroup('特性2描述','sol_'+i+'_'+l+'_f2_d', s[l].f2_d, l);
+            html += `</div><div class="form-row">`;
+            html += inputGroup('特性3标题','sol_'+i+'_'+l+'_f3_t', s[l].f3_t, l);
+            html += inputGroup('特性3描述','sol_'+i+'_'+l+'_f3_d', s[l].f3_d, l);
+            html += `</div></div>`;
+        });
+        html += `</div></div>`;
+    });
+    html += `<div style="margin-top:16px"><button class="btn btn-success" onclick="saveSolutions()"><i class="fas fa-save"></i> 保存方案</button></div></div>`;
+    main.innerHTML = html;
+}
+
+function saveSolutions(){
+    siteData.solutions.forEach((s,i)=>{
+        LANGS.forEach(l=>{
+            s[l].tab = document.getElementById('sol_'+i+'_'+l+'_tab')?.value || s[l].tab;
+            s[l].title = document.getElementById('sol_'+i+'_'+l+'_title')?.value || s[l].title;
+            s[l].desc = document.getElementById('sol_'+i+'_'+l+'_desc')?.value || s[l].desc;
+            s[l].f1_t = document.getElementById('sol_'+i+'_'+l+'_f1_t')?.value || s[l].f1_t;
+            s[l].f1_d = document.getElementById('sol_'+i+'_'+l+'_f1_d')?.value || s[l].f1_d;
+            s[l].f2_t = document.getElementById('sol_'+i+'_'+l+'_f2_t')?.value || s[l].f2_t;
+            s[l].f2_d = document.getElementById('sol_'+i+'_'+l+'_f2_d')?.value || s[l].f2_d;
+            s[l].f3_t = document.getElementById('sol_'+i+'_'+l+'_f3_t')?.value || s[l].f3_t;
+            s[l].f3_d = document.getElementById('sol_'+i+'_'+l+'_f3_d')?.value || s[l].f3_d;
+        });
+    });
+    saveData();
+    showToast('方案数据已保存','success');
+}
+
+// ========== 案例管理 ==========
+function renderCases(main){
+    let html = `<div class="panel active"><div class="panel-title"><i class="fas fa-images"></i> 经典案例管理</div>`;
+    siteData.cases.forEach((c,i)=>{
+        html += `<div class="card"><div class="card-header" onclick="toggleCard(this)"><h3><i class="fas fa-chevron-down"></i> ${c.zh.title}</h3><span class="card-toggle">展开/收起</span></div><div class="card-body">`;
+        html += `<div class="form-row">${imgUploader('case_'+c.id, c.img)}<div style="flex:1">`;
+        html += inputGroup('标签类型','case_tag_'+i, c.tag, null);
+        html += `</div></div>`;
+        html += langTabs('case_'+i);
+        LANGS.forEach(l=>{
+            html += `<div data-lang-field="${l}" style="display:${l==='zh'?'':'none'}">`;
+            html += inputGroup('案例标题','case_'+i+'_'+l+'_title', c[l].title, l);
+            html += inputGroup('案例描述','case_'+i+'_'+l+'_desc', c[l].desc, l, true);
+            html += `</div>`;
+        });
+        html += `<div style="text-align:right"><button class="btn btn-danger" onclick="removeCase(${i})"><i class="fas fa-trash"></i> 删除案例</button></div>`;
+        html += `</div></div>`;
+    });
+    html += `<button class="btn btn-primary" onclick="addCase()"><i class="fas fa-plus"></i> 添加案例</button>`;
+    html += `<div style="margin-top:16px"><button class="btn btn-success" onclick="saveCases()"><i class="fas fa-save"></i> 保存案例</button></div></div>`;
+    main.innerHTML = html;
+}
+
+function addCase(){
+    const id = 'case_' + Date.now();
+    siteData.cases.push({id:id,tag:'concert',img:'',
+        zh:{title:'新案例',desc:'案例描述'},en:{title:'New Case',desc:'Case description'},
+        es:{title:'Nuevo Caso',desc:'Descripción del caso'},pt:{title:'Novo Caso',desc:'Descrição do caso'}
+    });
+    saveData();
+    renderCases(document.getElementById('mainContent'));
+    showToast('已添加新案例','success');
+}
+
+function removeCase(i){
+    if(!confirm('确定删除案例 "'+siteData.cases[i].zh.title+'" ?')) return;
+    siteData.cases.splice(i,1);
+    saveData();
+    renderCases(document.getElementById('mainContent'));
+}
+
+function saveCases(){
+    siteData.cases.forEach((c,i)=>{
+        c.tag = document.getElementById('case_tag_'+i)?.value || c.tag;
+        const iu = document.getElementById('iu_case_'+c.id);
+        if(iu && iu.dataset.imgData) c.img = iu.dataset.imgData;
+        LANGS.forEach(l=>{
+            c[l].title = document.getElementById('case_'+i+'_'+l+'_title')?.value || c[l].title;
+            c[l].desc = document.getElementById('case_'+i+'_'+l+'_desc')?.value || c[l].desc;
+        });
+    });
+    saveData();
+    showToast('案例数据已保存','success');
+}
+
+// ========== Hero 区域 ==========
+function renderHero(main){
+    const h = siteData.hero;
+    let html = `<div class="panel active"><div class="panel-title"><i class="fas fa-home"></i> 首页区域</div><div class="card"><div class="card-body">`;
+    html += langTabs('hero');
+    LANGS.forEach(l=>{
+        html += `<div data-lang-field="${l}" style="display:${l==='zh'?'':'none'}">`;
+        html += inputGroup('标语','hero_'+l+'_badge', h[l].badge, l);
+        html += `<div class="form-row">`;
+        html += inputGroup('标题第一行','hero_'+l+'_t1', h[l].t1, l);
+        html += inputGroup('标题第二行（高亮）','hero_'+l+'_t2', h[l].t2, l);
+        html += `</div>`;
+        html += inputGroup('描述','hero_'+l+'_desc', h[l].desc, l, true);
+        html += `</div>`;
+    });
+    html += `</div></div>`;
+    html += `<div class="card"><div class="card-header"><h3><i class="fas fa-chart-bar"></i> 统计数据</h3></div><div class="card-body">`;
+    html += `<div class="form-row-4">`;
+    html += inputGroup('行业经验(年)','stat_years', siteData.stats.years, null);
+    html += inputGroup('成功项目','stat_projects', siteData.stats.projects, null);
+    html += inputGroup('国家覆盖','stat_countries', siteData.stats.countries, null);
+    html += inputGroup('核心专利','stat_patents', siteData.stats.patents, null);
+    html += `</div></div></div>`;
+    html += `<button class="btn btn-success" onclick="saveHero()"><i class="fas fa-save"></i> 保存</button></div>`;
+    main.innerHTML = html;
+}
+
+function saveHero(){
+    LANGS.forEach(l=>{
+        siteData.hero[l].badge = document.getElementById('hero_'+l+'_badge')?.value || siteData.hero[l].badge;
+        siteData.hero[l].t1 = document.getElementById('hero_'+l+'_t1')?.value || siteData.hero[l].t1;
+        siteData.hero[l].t2 = document.getElementById('hero_'+l+'_t2')?.value || siteData.hero[l].t2;
+        siteData.hero[l].desc = document.getElementById('hero_'+l+'_desc')?.value || siteData.hero[l].desc;
+    });
+    siteData.stats.years = parseInt(document.getElementById('stat_years')?.value) || siteData.stats.years;
+    siteData.stats.projects = parseInt(document.getElementById('stat_projects')?.value) || siteData.stats.projects;
+    siteData.stats.countries = parseInt(document.getElementById('stat_countries')?.value) || siteData.stats.countries;
+    siteData.stats.patents = parseInt(document.getElementById('stat_patents')?.value) || siteData.stats.patents;
+    saveData();
+    showToast('首页数据已保存','success');
+}
+
+// ========== 公司信息 ==========
+function renderAbout(main){
+    const a = siteData.about;
+    let html = `<div class="panel active"><div class="panel-title"><i class="fas fa-building"></i> 公司信息</div><div class="card"><div class="card-body">`;
+    html += langTabs('about');
+    LANGS.forEach(l=>{
+        html += `<div data-lang-field="${l}" style="display:${l==='zh'?'':'none'}">`;
+        html += inputGroup('标题','about_'+l+'_title', a[l].title, l);
+        html += inputGroup('引言','about_'+l+'_lead', a[l].lead, l, true);
+        html += inputGroup('段落1','about_'+l+'_p1', a[l].p1, l, true);
+        html += inputGroup('段落2','about_'+l+'_p2', a[l].p2, l, true);
+        html += `</div>`;
+    });
+    html += `</div></div>`;
+    html += `<button class="btn btn-success" onclick="saveAbout()"><i class="fas fa-save"></i> 保存</button></div>`;
+    main.innerHTML = html;
+}
+
+function saveAbout(){
+    LANGS.forEach(l=>{
+        siteData.about[l].title = document.getElementById('about_'+l+'_title')?.value || siteData.about[l].title;
+        siteData.about[l].lead = document.getElementById('about_'+l+'_lead')?.value || siteData.about[l].lead;
+        siteData.about[l].p1 = document.getElementById('about_'+l+'_p1')?.value || siteData.about[l].p1;
+        siteData.about[l].p2 = document.getElementById('about_'+l+'_p2')?.value || siteData.about[l].p2;
+    });
+    saveData();
+    showToast('公司信息已保存','success');
+}
+
+// ========== 联系方式 ==========
+function renderContact(main){
+    const c = siteData.contact;
+    let html = `<div class="panel active"><div class="panel-title"><i class="fas fa-phone"></i> 联系方式</div><div class="card"><div class="card-body">`;
+    html += inputGroup('电话','ct_phone', c.phone, null);
+    html += inputGroup('邮箱','ct_email', c.email, null);
+    html += inputGroup('地址（中文）','ct_addr_zh', c.address_zh, null);
+    html += inputGroup('地址（英文）','ct_addr_en', c.address_en, null);
+    html += inputGroup('地址（西语）','ct_addr_es', c.address_es, null);
+    html += inputGroup('地址（葡语）','ct_addr_pt', c.address_pt, null);
+    html += `</div></div>`;
+    html += `<button class="btn btn-success" onclick="saveContact()"><i class="fas fa-save"></i> 保存</button></div>`;
+    main.innerHTML = html;
+}
+
+function saveContact(){
+    siteData.contact.phone = document.getElementById('ct_phone')?.value || siteData.contact.phone;
+    siteData.contact.email = document.getElementById('ct_email')?.value || siteData.contact.email;
+    siteData.contact.address_zh = document.getElementById('ct_addr_zh')?.value || siteData.contact.address_zh;
+    siteData.contact.address_en = document.getElementById('ct_addr_en')?.value || siteData.contact.address_en;
+    siteData.contact.address_es = document.getElementById('ct_addr_es')?.value || siteData.contact.address_es;
+    siteData.contact.address_pt = document.getElementById('ct_addr_pt')?.value || siteData.contact.address_pt;
+    saveData();
+    showToast('联系方式已保存','success');
+}
+
+// ========== 发布设置 ==========
+function renderSettings(main){
+    const s = siteData.settings;
+    let html = `<div class="panel active"><div class="panel-title"><i class="fas fa-cog"></i> 发布设置</div>`;
+    html += `<div class="card"><div class="card-body">
+        <div class="form-group"><label>GitHub Token (Personal Access Token)</label><input type="password" class="token-input" id="set_token" value="${escHtml(s.githubToken)}" placeholder="ghp_xxxxxxxxxxxx 或 github_pat_xxxxxxxxxxxx"></div>
+        <div class="form-group"><label>仓库</label><input type="text" class="token-input" id="set_repo" value="${escHtml(s.repo)}" placeholder="用户名/仓库名"></div>
+        <div class="form-group"><label>分支</label><input type="text" class="token-input" id="set_branch" value="${escHtml(s.branch)}" placeholder="main"></div>
+        <p style="color:var(--text3);font-size:13px;margin-top:8px"><i class="fas fa-info-circle"></i> Token 只保存在你的浏览器本地，不会上传到任何服务器。需要 repo 权限的 Token。</p>
+    </div></div>`;
+    html += `<button class="btn btn-success" onclick="saveSettings()"><i class="fas fa-save"></i> 保存设置</button></div>`;
+    main.innerHTML = html;
+}
+
+function saveSettings(){
+    siteData.settings.githubToken = document.getElementById('set_token')?.value || '';
+    siteData.settings.repo = document.getElementById('set_repo')?.value || 'sophy00189/neecai-website';
+    siteData.settings.branch = document.getElementById('set_branch')?.value || 'main';
+    saveData();
+    showToast('设置已保存','success');
+}
+
+// ========== 展开/收起 ==========
+function toggleCard(header){
+    const body = header.nextElementSibling;
+    const icon = header.querySelector('i');
+    if(body.style.display==='none'){body.style.display='grid';icon.className='fas fa-chevron-down';}
+    else{body.style.display='none';icon.className='fas fa-chevron-right';}
+}
+
+// ========== 导入导出 ==========
+function exportJSON(){
+    const blob = new Blob([JSON.stringify(siteData,null,2)],{type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'neecai_data_'+new Date().toISOString().slice(0,10)+'.json';
+    a.click();
+    showToast('数据已导出','success');
+}
+
+document.getElementById('importFile').addEventListener('change',function(e){
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev){
+        try{
+            siteData = JSON.parse(ev.target.result);
+            saveData();
+            renderPanel(document.querySelector('.nav-item.active').dataset.panel);
+            showToast('数据导入成功','success');
+        }catch(err){showToast('JSON 格式错误','error');}
+    };
+    reader.readAsText(file);
+});
+
+function importJSON(){document.getElementById('importFile').click();}
+
+// ========== Toast ==========
+function showToast(msg, type){
+    const t = document.createElement('div');
+    t.className = 'toast toast-'+type;
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(()=>t.classList.add('show'),50);
+    setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),300);},2500);
+}
+
+// ========== 一键发布 ==========
+async function startPublish(){
+    if(!siteData.settings.githubToken){showToast('请先在发布设置中填写 GitHub Token','error');return;}
+    const overlay = document.createElement('div');
+    overlay.className = 'publish-overlay';
+    overlay.innerHTML = `<div class="publish-modal"><h2><i class="fas fa-rocket" style="color:var(--accent)"></i> 正在发布...</h2><div class="publish-log" id="pubLog"></div><div style="text-align:right;margin-top:16px"><button class="btn btn-secondary" onclick="this.closest('.publish-overlay').remove()">关闭</button></div></div>`;
+    document.body.appendChild(overlay);
+    const log = document.getElementById('pubLog');
+
+    function addLog(msg, type='info'){log.innerHTML += `<div class="${type}">${msg}</div>`;log.scrollTop=log.scrollHeight;}
+
+    try{
+        const token = siteData.settings.githubToken;
+        const repo = siteData.settings.repo;
+        const branch = siteData.settings.branch;
+        const headers = {'Authorization':'token '+token,'Accept':'application/vnd.github.v3+json'};
+
+        // 1. 生成新的 script.js
+        addLog('正在生成网站文件...','info');
+        const newJS = generateScriptJS();
+        const newHTML = await generateIndexHTML();
+
+        // 2. 获取当前文件的 SHA
+        addLog('获取 GitHub 仓库信息...','info');
+        async function getFileSHA(path){
+            const r = await fetch(`https://api.github.com/repos/${repo}/contents/${path}?ref=${branch}`, {headers});
+            if(r.ok){const d=await r.json();return d.sha;}
+            return null;
+        }
+
+        // 3. 上传图片
+        let imgCount = 0;
+        for(const p of siteData.products){
+            if(p.img && p.img.startsWith('data:')){
+                const imgPath = `images/product_${p.id}.${p.img.includes('png')?'png':'jpg'}`;
+                addLog(`上传图片: ${imgPath}`,'info');
+                const sha = await getFileSHA(imgPath);
+                const body = {message:'上传产品图片 '+p.id, content: p.img.split(',')[1], branch};
+                if(sha) body.sha = sha;
+                const r = await fetch(`https://api.github.com/repos/${repo}/contents/${imgPath}`,{method:'PUT',headers,body:JSON.stringify(body)});
+                if(r.ok){addLog(`  ✓ ${imgPath} 上传成功`,'ok');p.img=`/${imgPath}`;imgCount++;}
+                else{const e=await r.json();addLog(`  ✗ ${imgPath} 上传失败: ${e.message}`,'err');}
+            }
+        }
+        for(const c of siteData.cases){
+            if(c.img && c.img.startsWith('data:')){
+                const imgPath = `images/case_${c.id}.${c.img.includes('png')?'png':'jpg'}`;
+                addLog(`上传图片: ${imgPath}`,'info');
+                const sha = await getFileSHA(imgPath);
+                const body = {message:'上传案例图片 '+c.id, content: c.img.split(',')[1], branch};
+                if(sha) body.sha = sha;
+                const r = await fetch(`https://api.github.com/repos/${repo}/contents/${imgPath}`,{method:'PUT',headers,body:JSON.stringify(body)});
+                if(r.ok){addLog(`  ✓ ${imgPath} 上传成功`,'ok');c.img=`/${imgPath}`;imgCount++;}
+                else{const e=await r.json();addLog(`  ✗ ${imgPath} 上传失败: ${e.message}`,'err');}
+            }
+        }
+        if(imgCount) saveData();
+
+        // 4. 推送 script.js
+        addLog('推送 script.js...','info');
+        const jsSHA = await getFileSHA('script.js');
+        const jsBody = {message:'更新网站内容 (admin)', content: btoa(unescape(encodeURIComponent(newJS))), branch};
+        if(jsSHA) jsBody.sha = jsSHA;
+        const jsR = await fetch(`https://api.github.com/repos/${repo}/contents/script.js`,{method:'PUT',headers,body:JSON.stringify(jsBody)});
+        if(jsR.ok) addLog('✓ script.js 推送成功','ok');
+        else{const e=await jsR.json();addLog('✗ script.js 推送失败: '+e.message,'err');throw new Error('script.js push failed');}
+
+        // 5. 推送 index.html
+        addLog('推送 index.html...','info');
+        const htmlSHA = await getFileSHA('index.html');
+        const htmlBody = {message:'更新网站页面 (admin)', content: btoa(unescape(encodeURIComponent(newHTML))), branch};
+        if(htmlSHA) htmlBody.sha = htmlSHA;
+        const htmlR = await fetch(`https://api.github.com/repos/${repo}/contents/index.html`,{method:'PUT',headers,body:JSON.stringify(htmlBody)});
+        if(htmlR.ok) addLog('✓ index.html 推送成功','ok');
+        else{const e=await htmlR.json();addLog('✗ index.html 推送失败: '+e.message,'err');throw new Error('index.html push failed');}
+
+        addLog('','info');
+        addLog('🎉 发布完成！Cloudflare 将在 1-2 分钟内自动部署更新。','ok');
+        addLog('访问 https://www.neecai.net 查看效果','info');
+    }catch(err){
+        addLog('发布出错: '+err.message,'err');
+    }
+}
+
+// ========== 生成 script.js ==========
+function generateScriptJS(){
+    // 读取当前 script.js 的模板，只替换 translations 部分
+    // 这里我们生成完整的 translations 对象
+    const t = {};
+    LANGS.forEach(l=>{
+        t[l] = {};
+        // 通用导航
+        if(l==='zh'){Object.assign(t[l],{logo_sub:'霓彩',nav_home:'首页',nav_products:'产品中心',nav_solutions:'解决方案',nav_cases:'经典案例',nav_about:'关于我们',nav_contact:'联系我们',nav_quote:'获取报价'});}
+        else if(l==='en'){Object.assign(t[l],{logo_sub:'Neecai',nav_home:'Home',nav_products:'Products',nav_solutions:'Solutions',nav_cases:'Portfolio',nav_about:'About',nav_contact:'Contact',nav_quote:'Get Quote'});}
+        else if(l==='es'){Object.assign(t[l],{logo_sub:'Neecai',nav_home:'Inicio',nav_products:'Productos',nav_solutions:'Soluciones',nav_cases:'Portafolio',nav_about:'Nosotros',nav_contact:'Contacto',nav_quote:'Cotizar'});}
+        else if(l==='pt'){Object.assign(t[l],{logo_sub:'Neecai',nav_home:'Início',nav_products:'Produtos',nav_solutions:'Soluções',nav_cases:'Portfólio',nav_about:'Sobre',nav_contact:'Contato',nav_quote:'Orçamento'});}
+
+        // Hero
+        const h = siteData.hero[l];
+        Object.assign(t[l],{hero_badge:h.badge,hero_t1:h.t1,hero_t2:h.t2,hero_desc:h.desc,hero_btn1:l==='zh'?'探索产品':l==='en'?'Explore Products':l==='es'?'Explorar Productos':'Explorar Produtos',hero_btn2:l==='zh'?'观看案例':l==='en'?'View Portfolio':l==='es'?'Ver Portafolio':'Ver Portfólio'});
+        Object.assign(t[l],{stat_years:l==='zh'?'年行业经验':l==='en'?'Years Experience':l==='es'?'Años de Experiencia':'Anos de Experiência',stat_projects:l==='zh'?'成功项目':l==='en'?'Successful Projects':l==='es'?'Proyectos Exitosos':'Projetos Bem-sucedidos',stat_countries:l==='zh'?'国家覆盖':l==='en'?'Countries Served':l==='es'?'Países Atendidos':'Países Atendidos',stat_patents:l==='zh'?'项核心专利':l==='en'?'Core Patents':l==='es'?'Patentes Core':'Patentes Core'});
+        t[l].scroll_down = l==='zh'?'向下滚动':l==='en'?'Scroll Down':l==='es'?'Desplazar':'Rolar';
+
+        // Products
+        Object.assign(t[l],{products_title:l==='zh'?'产品中心':l==='en'?'Products':l==='es'?'Productos':'Produtos',products_desc:l==='zh'?'覆盖舞台特效全品类，从火焰到星光，一站式满足你的所有需求':l==='en'?'Complete range of stage effects — from fire to starlight, one-stop solutions for all your needs':l==='es'?'Gama completa de efectos escénicos — del fuego a la luz de las estrellas':'Gama completa de efeitos cênicos — do fogo à luz das estrelas'});
+        siteData.products.forEach(p=>{
+            Object.assign(t[l],{['p_'+p.id+'_title']:p[l].title,['p_'+p.id+'_desc']:p[l].desc,['p_'+p.id+'_f1']:p[l].f1,['p_'+p.id+'_f2']:p[l].f2,['p_'+p.id+'_f3']:p[l].f3});
+        });
+        t[l].learn_more = l==='zh'?'了解更多':l==='en'?'Learn More':l==='es'?'Más Información':'Saiba Mais';
+
+        // Solutions
+        Object.assign(t[l],{solutions_title:l==='zh'?'解决方案':l==='en'?'Solutions':l==='es'?'Soluciones':'Soluções',solutions_desc:l==='zh'?'针对不同场景，提供定制化特效方案，让每一场活动都成为经典':l==='en'?'Customized effects solutions for every scenario, making every event a classic':l==='es'?'Soluciones de efectos personalizadas para cada escenario':'Soluções de efeitos personalizadas para cada cenário'});
+        siteData.solutions.forEach(s=>{
+            t[l]['tab_'+s.id] = s[l].tab;
+            t[l]['sol_'+s.id+'_title'] = s[l].title;
+            t[l]['sol_'+s.id+'_desc'] = s[l].desc;
+            t[l]['sol_'+s.id+'_f1_t'] = s[l].f1_t;
+            t[l]['sol_'+s.id+'_f1_d'] = s[l].f1_d;
+            t[l]['sol_'+s.id+'_f2_t'] = s[l].f2_t;
+            t[l]['sol_'+s.id+'_f2_d'] = s[l].f2_d;
+            t[l]['sol_'+s.id+'_f3_t'] = s[l].f3_t;
+            t[l]['sol_'+s.id+'_f3_d'] = s[l].f3_d;
+        });
+        t[l].sol_cta = l==='zh'?'咨询方案':l==='en'?'Consult Solution':l==='es'?'Consultar Solución':'Consultar Solução';
+
+        // Cases
+        Object.assign(t[l],{cases_title:l==='zh'?'经典案例':l==='en'?'Portfolio':l==='es'?'Portafolio':'Portfólio',cases_desc:l==='zh'?'从万人演唱会到高端婚礼，看看我们如何点亮每一个高光时刻':l==='en'?'From massive concerts to luxury weddings, see how we light up every highlight moment':l==='es'?'Desde conciertos masivos hasta bodas de lujo':'De concertos massivos a casamentos de luxo'});
+        siteData.cases.forEach((c,ci)=>{
+            t[l]['case_c'+(ci+1)+'_title'] = c[l].title;
+            t[l]['case_c'+(ci+1)+'_desc'] = c[l].desc;
+        });
+
+        // Advantages (keep static)
+        const advData = {
+            zh:{title:'核心优势',desc:'选择我们的6大理由',r1_t:'自主研发',r1_d:'36项核心专利技术，持续创新引领行业标准',r2_t:'安全可靠',r2_d:'多重安全防护机制，CE/FCC/ROHS国际认证',r3_t:'全球服务',r3_d:'覆盖50+国家与地区，6大海外仓储中心',r4_t:'定制能力',r4_d:'从单台设备到整场编排，深度定制你的一切需求',r5_t:'7×24支持',r5_d:'专业技术团队全天候在线，随时响应紧急需求',r6_t:'源头工厂',r6_d:'20000㎡自有生产基地，品质与交付双重保障'},
+            en:{title:'Core Advantages',desc:'6 reasons to choose us',r1_t:'Self-Developed',r1_d:'36 core patent technologies, continuously innovating and leading industry standards',r2_t:'Safe & Reliable',r2_d:'Multiple safety mechanisms, CE/FCC/ROHS international certifications',r3_t:'Global Service',r3_d:'Covering 50+ countries and regions, 6 overseas warehouse centers',r4_t:'Customization',r4_d:'From single equipment to full-show choreography, deep customization for all needs',r5_t:'24/7 Support',r5_d:'Professional tech team online around the clock, ready for urgent needs',r6_t:'Direct Factory',r6_d:'20,000㎡ own production base, quality and delivery guaranteed'},
+            es:{title:'Ventajas Core',desc:'6 razones para elegirnos',r1_t:'Desarrollo Propio',r1_d:'36 patentes core, innovación continua',r2_t:'Seguro y Confiable',r2_d:'Múltiples mecanismos de seguridad, certificaciones CE/FCC/ROHS',r3_t:'Servicio Global',r2_d:'Cubriendo 50+ países, 6 centros de almacén en el extranjero',r4_t:'Personalización',r4_d:'Desde un solo equipo hasta coreografía completa',r5_t:'Soporte 24/7',r5_d:'Equipo técnico profesional en línea',r6_t:'Fábrica Directa',r6_d:'20.000㎡ de base de producción propia'},
+            pt:{title:'Vantagens Core',desc:'6 razões para nos escolher',r1_t:'Desenvolvimento Próprio',r1_d:'36 patentes core, inovação contínua',r2_t:'Seguro e Confiável',r2_d:'Múltiplos mecanismos de segurança, certificações CE/FCC/ROHS',r3_t:'Serviço Global',r3_d:'Cobrindo 50+ países, 6 centros de armazém no exterior',r4_t:'Personalização',r4_d:'De um único equipamento à coreografia completa',r5_t:'Suporte 24/7',r5_d:'Equipe técnica profissional online',r6_t:'Fábrica Direta',r6_d:'20.000㎡ de base de produção própria'}
+        };
+        Object.assign(t[l], advData[l]);
+
+        // About
+        const a = siteData.about[l];
+        Object.assign(t[l],{about_title:a.title,about_lead:aLead(a.lead),about_p1:a.p1,about_p2:a.p2,about_factory_label:l==='zh'?'生产基地':l==='en'?'Production Base':l==='es'?'Base de Producción':'Base de Produção',about_badge_text:l==='zh'?'年行业深耕':l==='en'?'Years of Excellence':l==='es'?'Años de Excelencia':'Anos de Excelência'});
+        t[l].ms_2010 = l==='zh'?'公司成立':l==='en'?'Founded':l==='es'?'Fundada':'Fundada';
+        t[l].ms_2015 = l==='zh'?'获首轮投资':l==='en'?'First Round Investment':l==='es'?'Primera Ronda de Inversión':'Primeira Rodada de Investimento';
+        t[l].ms_2018 = l==='zh'?'海外业务拓展':l==='en'?'Overseas Expansion':l==='es'?'Expansión Internacional':'Expansão Internacional';
+        t[l].ms_2022 = l==='zh'?'专利突破30项':l==='en'?'30+ Patents':l==='es'?'30+ Patentes':'30+ Patentes';
+        t[l].ms_2025 = l==='zh'?'全息投影产品线发布':l==='en'?'Holographic Line Launch':l==='es'?'Lanzamiento Línea Holográfica':'Lançamento Linha Holográfica';
+
+        // Testimonials (keep static)
+        const testiData = {
+            zh:{testi_title:'客户评价',testi_desc:'来自全球客户的真实反馈',testi_1_text:'"霓彩的特效设备质量非常稳定，在12城巡演中从未出过任何故障。他们的技术支持团队也是我们合作过的最专业的。"',testi_1_name:'张总监',testi_1_role:'某知名艺人巡演制作总监',testi_2_text:'"我们在欧洲的音乐节用了他们的火花机和烟雾机，效果震撼全场。配送速度也很快，从波兰仓3天就到了。"',testi_2_role:'西班牙活动制作公司CEO',testi_3_text:'"冷火花走道在我们婚礼上效果太惊艳了！安全无烟，宾客们都赞不绝口。强烈推荐给所有新人！"',testi_3_name:'李女士',testi_3_role:'婚礼策划师'},
+            en:{testi_title:'Client Testimonials',testi_desc:'Real feedback from global clients',testi_1_text:'"Neecai\'s effects equipment is extremely reliable — zero failures across a 12-city tour. Their tech support team is the most professional we\'ve worked with."',testi_1_name:'Director Zhang',testi_1_role:'Tour Production Director',testi_2_text:'"We used their spark and smoke machines at our European festival — stunning effects. Delivery was fast too, 3 days from the Poland warehouse."',testi_2_role:'Spanish Event Production CEO',testi_3_text:'"The cold spark walkway at our wedding was absolutely stunning! Safe and smokeless, all guests were amazed. Highly recommend!"',testi_3_name:'Ms. Li',testi_3_role:'Wedding Planner'},
+            es:{testi_title:'Testimonios',testi_desc:'Comentarios reales de clientes globales',testi_1_text:'"El equipo de efectos de Neecai es extremadamente confiable."',testi_1_name:'Director Zhang',testi_1_role:'Director de Producción de Gira',testi_2_text:'"Usamos sus máquinas en nuestro festival europeo — efectos impresionantes."',testi_2_role:'CEO de Producción de Eventos',testi_3_text:'"El pasillo de chispas frías en nuestra boda fue absolutamente impresionante."',testi_3_name:'Sra. Li',testi_3_role:'Planificadora de Bodas'},
+            pt:{testi_title:'Depoimentos',testi_desc:'Feedback real de clientes globais',testi_1_text:'"O equipamento de efeitos da Neecai é extremamente confiável."',testi_1_name:'Diretor Zhang',testi_1_role:'Diretor de Produção de Turnê',testi_2_text:'"Usamos suas máquinas em nosso festival europeu — efeitos impressionantes."',testi_2_role:'CEO de Produção de Eventos',testi_3_text:'"O corredor de faíscas frias no nosso casamento foi absolutamente impressionante."',testi_3_name:'Sra. Li',testi_3_role:'Planejadora de Casamentos'}
+        };
+        Object.assign(t[l], testiData[l]);
+
+        // Contact
+        const ct = siteData.contact;
+        Object.assign(t[l],{contact_title:l==='zh'?'联系我们':l==='en'?'Contact Us':l==='es'?'Contáctenos':'Contate-nos',contact_desc:l==='zh'?'无论您是需要产品咨询、方案定制还是售后支持，我们的团队随时为您服务。':l==='en'?'Whether you need product consultation, customized solutions, or after-sales support, our team is always ready.':l==='es'?'Ya sea consulta de productos, soluciones personalizadas o soporte postventa, nuestro equipo está siempre listo.':'Seja para consulta de produtos, soluções personalizadas ou suporte pós-venda, nossa equipe está sempre pronta.'});
+        Object.assign(t[l],{ct_phone_t:l==='zh'?'电话咨询':l==='en'?'Phone':l==='es'?'Teléfono':'Telefone',ct_email_t:l==='zh'?'邮件联系':l==='en'?'Email':l==='es'?'Correo':'E-mail',ct_addr_t:l==='zh'?'公司地址':l==='en'?'Address':l==='es'?'Dirección':'Endereço',ct_addr_d:ct['address_'+l]||ct.address_en});
+
+        // Form
+        Object.assign(t[l],{form_title:l==='zh'?'获取报价':l==='en'?'Get a Quote':l==='es'?'Obtener Cotización':'Obter Orçamento',form_subtitle:l==='zh'?'填写以下信息，我们将在24小时内回复您':l==='en'?'Fill in the form below and we\'ll respond within 24 hours':l==='es'?'Complete el formulario y le responderemos en 24 horas':'Preencha o formulário e responderemos em 24 horas'});
+        Object.assign(t[l],{form_name:l==='zh'?'姓名 *':l==='en'?'Name *':l==='es'?'Nombre *':'Nome *',form_name_ph:l==='zh'?'请输入您的姓名':l==='en'?'Enter your name':l==='es'?'Ingrese su nombre':'Digite seu nome',form_company:l==='zh'?'公司':l==='en'?'Company':l==='es'?'Empresa':'Empresa',form_company_ph:l==='zh'?'请输入公司名称':l==='en'?'Enter company name':l==='es'?'Ingrese nombre de empresa':'Digite o nome da empresa'});
+        Object.assign(t[l],{form_email:l==='zh'?'邮箱 *':l==='en'?'Email *':l==='es'?'Correo *':'E-mail *',form_email_ph:l==='zh'?'请输入邮箱地址':l==='en'?'Enter your email':l==='es'?'Ingrese su correo':'Digite seu e-mail',form_phone:l==='zh'?'电话':l==='en'?'Phone':l==='es'?'Teléfono':'Telefone',form_phone_ph:l==='zh'?'请输入联系电话':l==='en'?'Enter your phone number':l==='es'?'Ingrese su teléfono':'Digite seu telefone'});
+        Object.assign(t[l],{form_product:l==='zh'?'感兴趣的产品':l==='en'?'Product Interest':l==='es'?'Producto de Interés':'Produto de Interesse',form_select:l==='zh'?'请选择产品类型':l==='en'?'Select product type':l==='es'?'Seleccione tipo de producto':'Selecione o tipo de produto',form_comprehensive:l==='zh'?'综合方案':l==='en'?'Comprehensive Solution':l==='es'?'Solución Integral':'Solução Integral'});
+        Object.assign(t[l],{form_msg:l==='zh'?'需求描述 *':l==='en'?'Requirements *':l==='es'?'Requisitos *':'Requisitos *',form_msg_ph:l==='zh'?'请描述您的具体需求，如活动类型、场地规模、期望效果等':l==='en'?'Describe your needs — event type, venue size, desired effects, etc.':l==='es'?'Describa sus necesidades — tipo de evento, tamaño del lugar, efectos deseados, etc.':'Descreva suas necessidades — tipo de evento, tamanho do local, efeitos desejados, etc.'});
+        t[l].form_submit = l==='zh'?'提交咨询':l==='en'?'Submit Inquiry':l==='es'?'Enviar Consulta':'Enviar Consulta';
+
+        // Popup
+        Object.assign(t[l],{popup_title:l==='zh'?'获取专属报价':l==='en'?'Get Your Custom Quote':l==='es'?'Obtenga su Cotización':'Obtenha seu Orçamento',popup_subtitle:l==='zh'?'15年舞台特效经验，24小时内回复您的需求':l==='en'?'15 years of stage effects expertise, response within 24 hours':l==='es'?'15 años de experiencia en efectos escénicos, respuesta en 24 horas':'15 anos de experiência em efeitos cênicos, resposta em 24 horas'});
+        Object.assign(t[l],{popup_name_ph:l==='zh'?'您的姓名 *':l==='en'?'Your name *':l==='es'?'Su nombre *':'Seu nome *',popup_email_ph:l==='zh'?'邮箱地址 *':l==='en'?'Email address *':l==='es'?'Correo electrónico *':'Endereço de e-mail *',popup_phone_ph:l==='zh'?'联系电话':l==='en'?'Phone number':l==='es'?'Teléfono':'Telefone'});
+        Object.assign(t[l],{popup_select:l==='zh'?'感兴趣的产品':l==='en'?'Product interest':l==='es'?'Producto de interés':'Produto de interesse',popup_msg_ph:l==='zh'?'请简述您的需求，如活动类型、场地大小、预算范围等':l==='en'?'Briefly describe your needs — event type, venue size, budget, etc.':l==='es'?'Describa brevemente sus necesidades — tipo de evento, tamaño del lugar, presupuesto, etc.':'Descreva brevemente suas necessidades — tipo de evento, tamanho do local, orçamento, etc.'});
+        Object.assign(t[l],{popup_submit:l==='zh'?'立即获取报价':l==='en'?'Get Your Quote Now':l==='es'?'Obtener Cotización Ahora':'Obter Orçamento Agora',popup_trust1:l==='zh'?'CE/FCC认证':l==='en'?'CE/FCC Certified':l==='es'?'Certificado CE/FCC':'Certificado CE/FCC',popup_trust2:l==='zh'?'50+国家客户':l==='en'?'50+ Countries':l==='es'?'50+ Países':'50+ Países',popup_trust3:l==='zh'?'24h回复':l==='en'?'24h Response':l==='es'?'Respuesta 24h':'Resposta 24h'});
+
+        // Footer
+        Object.assign(t[l],{footer_desc:l==='zh'?'专注舞台特效15年，用科技与艺术点亮每一场演出。':l==='en'?'15 years of stage effects excellence, lighting up every show with technology and art.':l==='es'?'15 años de excelencia en efectos escénicos, iluminando cada show con tecnología y arte.':'15 anos de excelência em efeitos cênicos, iluminando cada show com tecnologia e arte.'});
+        Object.assign(t[l],{footer_products:l==='zh'?'产品中心':l==='en'?'Products':l==='es'?'Productos':'Produtos',footer_solutions:l==='zh'?'解决方案':l==='en'?'Solutions':l==='es'?'Soluciones':'Soluções',footer_about:l==='zh'?'关于我们':l==='en'?'About Us':l==='es'?'Nosotros':'Sobre Nós'});
+        Object.assign(t[l],{footer_about_co:l==='zh'?'公司介绍':l==='en'?'Company':l==='es'?'Empresa':'Empresa',footer_news:l==='zh'?'新闻动态':l==='en'?'News':l==='es'?'Noticias':'Notícias',footer_join:l==='zh'?'加入我们':l==='en'?'Careers':l==='es'?'Empleo':'Carreiras',footer_partners:l==='zh'?'合作伙伴':l==='en'?'Partners':l==='es'?'Socios':'Parceiros'});
+        Object.assign(t[l],{footer_privacy:l==='zh'?'隐私政策':l==='en'?'Privacy Policy':l==='es'?'Política de Privacidad':'Política de Privacidade',footer_terms:l==='zh'?'使用条款':l==='en'?'Terms of Use':l==='es'?'Términos de Uso':'Termos de Uso',footer_sitemap:l==='zh'?'网站地图':l==='en'?'Sitemap':l==='es'?'Mapa del Sitio':'Mapa do Site'});
+
+        // Case tags
+        Object.assign(t[l],{case_tag_concert:l==='zh'?'演唱会':l==='en'?'Concert':l==='es'?'Concierto':'Concerto',case_tag_tv:l==='zh'?'电视节目':l==='en'?'TV Show':l==='es'?'Programa de TV':'Programa de TV',case_tag_festival:l==='zh'?'音乐节':l==='en'?'Festival':l==='es'?'Festival':'Festival',case_tag_corp:l==='zh'?'企业活动':l==='en'?'Corporate':l==='es'?'Corporativo':'Corporativo',case_tag_wedding:l==='zh'?'婚礼':l==='en'?'Wedding':l==='es'?'Boda':'Casamento'});
+    });
+
+    // Read the current script.js template and replace translations
+    // For simplicity, we'll generate a minimal translations + keep the rest of the JS logic
+    // We need to read the original script.js to get the non-translation parts
+    return `/* Neecai Website Script - Auto-generated by Admin */\ndocument.addEventListener('DOMContentLoaded', () => {\n    const translations = ${JSON.stringify(t, null, 4)};\n    ${getJSLogic()}
+});`;
+}
+
+function aLead(s){return s.replace(/<br>/g,'\\n').replace(/<strong>/g,'').replace(/<\/strong>/g,'');}
+
+function getJSLogic(){
+    return `
+    // ========== 语言切换 ==========
+    let currentLang = localStorage.getItem('neecai_lang') || 'zh';
+    function applyLang(lang) {
+        currentLang = lang;
+        localStorage.setItem('neecai_lang', lang);
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if (translations[lang] && translations[lang][key]) el.innerHTML = translations[lang][key];
+        });
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+            const key = el.getAttribute('data-i18n-placeholder');
+            if (translations[lang] && translations[lang][key]) el.placeholder = translations[lang][key];
+        });
+        document.documentElement.lang = lang === 'zh' ? 'zh-CN' : lang;
+        const titles = {zh:'霓彩舞台设备 | Neecai - www.neecai.net',en:'Neecai Stage Effects - www.neecai.net',es:'Neecai Efectos Escénicos - www.neecai.net',pt:'Neecai Efeitos Cênicos - www.neecai.net'};
+        document.title = titles[lang] || titles.en;
+        document.getElementById('currentLang') && (document.getElementById('currentLang').textContent = {zh:'中文',en:'English',es:'Español',pt:'Português'}[lang]);
+        document.querySelectorAll('.lang-option').forEach(o => o.classList.toggle('active', o.dataset.lang === lang));
+    }
+    applyLang(currentLang);
+    document.querySelectorAll('.lang-option').forEach(btn => btn.addEventListener('click', () => applyLang(btn.dataset.lang)));
+    const langBtn = document.getElementById('langBtn'), langDropdown = document.getElementById('langDropdown');
+    if(langBtn) langBtn.addEventListener('click', () => langDropdown.classList.toggle('show'));
+    document.addEventListener('click', e => { if (!e.target.closest('.lang-switcher') && langDropdown) langDropdown.classList.remove('show'); });
+
+    // ========== 粒子背景 ==========
+    const canvas = document.getElementById('particles-canvas');
+    if(canvas){const ctx=canvas.getContext('2d');function resize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}resize();window.addEventListener('resize',resize);const particles=[];for(let i=0;i<60;i++){particles.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,vx:(Math.random()-0.5)*0.5,vy:(Math.random()-0.5)*0.5,r:Math.random()*2+0.5,a:Math.random()*0.3+0.1});}function drawParticles(){ctx.clearRect(0,0,canvas.width,canvas.height);particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>canvas.width)p.vx*=-1;if(p.y<0||p.y>canvas.height)p.vy*=-1;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle='rgba(255,107,53,'+p.a+')';ctx.fill();});requestAnimationFrame(drawParticles);}drawParticles();}
+
+    // ========== 数字动画 ==========
+    const observer = new IntersectionObserver(entries => {entries.forEach(entry => {if(entry.isIntersecting){entry.target.querySelectorAll('.stat-number').forEach(el=>{const target=parseInt(el.dataset.target);let current=0;const step=target/60;const timer=setInterval(()=>{current+=step;if(current>=target){current=target;clearInterval(timer);}el.textContent=Math.floor(current);},25);});observer.unobserve(entry.target);}});});document.querySelector('.hero-stats') && observer.observe(document.querySelector('.hero-stats'));
+
+    // ========== 解决方案 Tab ==========
+    document.querySelectorAll('.tab-btn').forEach(btn => {btn.addEventListener('click', () => {document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));btn.classList.add('active');const panel = document.getElementById(btn.dataset.tab);if(panel) panel.classList.add('active');});});
+
+    // ========== 滚动动画 ==========
+    const scrollObserver = new IntersectionObserver(entries => {entries.forEach(entry => {if(entry.isIntersecting){entry.target.classList.add('revealed');scrollObserver.unobserve(entry.target);}});},{threshold:0.1});document.querySelectorAll('.product-card, .advantage-card, .case-card, .testimonial-card').forEach(el => {el.classList.add('scroll-reveal');scrollObserver.observe(el);});
+
+    // ========== 导航栏滚动 ==========
+    window.addEventListener('scroll', () => {const navbar = document.getElementById('navbar');if(navbar) navbar.classList.toggle('scrolled', window.scrollY > 50);});
+
+    // ========== 回到顶部 ==========
+    const backToTop = document.getElementById('backToTop');if(backToTop){window.addEventListener('scroll', () => backToTop.classList.toggle('visible', window.scrollY > 500));backToTop.addEventListener('click', () => window.scrollTo({top:0,behavior:'smooth'}));}
+
+    // ========== 联系表单 ==========
+    const contactForm = document.getElementById('contactForm');if(contactForm){contactForm.addEventListener('submit', e => {e.preventDefault();const btn=contactForm.querySelector('.btn-submit');const orig=btn.innerHTML;btn.innerHTML='<i class="fas fa-spinner fa-spin"></i>';btn.style.opacity='0.7';btn.style.pointerEvents='none';setTimeout(()=>{btn.innerHTML='<span>\\u2713</span><i class="fas fa-check"></i>';btn.style.background='linear-gradient(135deg, #06d6a0, #118ab2)';setTimeout(()=>{btn.innerHTML=orig;btn.style.opacity='1';btn.style.pointerEvents='auto';btn.style.background='';e.target.reset();},2000);},1500);});}
+
+    // ========== 产品卡片交互 ==========
+    document.querySelectorAll('.product-card').forEach(card => {card.addEventListener('mousemove', e => {const rect=card.getBoundingClientRect();const visual=card.querySelector('.product-visual');if(visual) visual.style.background='radial-gradient(circle at '+(e.clientX-rect.left)+'px '+(e.clientY-rect.top)+'px, rgba(255,107,53,0.08), transparent 50%)';});card.addEventListener('mouseleave', () => {const v=card.querySelector('.product-visual');if(v) v.style.background='';});});
+
+    // ========== 鼠标跟随 ==========
+    const heroSection = document.querySelector('.hero');if(heroSection){heroSection.addEventListener('mousemove', e => {const x=e.clientX/window.innerWidth, y=e.clientY/window.innerHeight;heroSection.querySelectorAll('.light-beam').forEach((beam, i) => {beam.style.transform='translate('+((x-0.5)*10*(i+1))+'px, '+((y-0.5)*5*(i+1))+'px) rotate('+((x-0.5)*20)+'deg)';});});}
+
+    // ========== 平滑滚动 ==========
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {anchor.addEventListener('click', function(e) {e.preventDefault();const target=document.querySelector(this.getAttribute('href'));if(target) window.scrollTo({top:target.offsetTop-80,behavior:'smooth'});});});
+`;
+}
+
+// ========== 生成 index.html ==========
+async function generateIndexHTML(){
+    // Fetch the current index.html as template
+    const response = await fetch('index.html');
+    let html = await response.text();
+
+    // Update product cards - replace icon divs with images where available
+    siteData.products.forEach(p => {
+        if(p.img){
+            // Replace the product-icon-wrap with an actual image
+            const iconPattern = new RegExp(`<div class="product-icon-wrap[^"]*"><i class="[^"]*"><\\/i><\\/div>`);
+            // We'll do this more carefully
+        }
+    });
+
+    // Update stat numbers
+    html = html.replace(/data-target="15"/, `data-target="${siteData.stats.years}"`);
+    html = html.replace(/data-target="3000"/, `data-target="${siteData.stats.projects}"`);
+    html = html.replace(/data-target="50"/, `data-target="${siteData.stats.countries}"`);
+    html = html.replace(/data-target="36"/, `data-target="${siteData.stats.patents}"`);
+
+    // Update contact info
+    html = html.replace(/href="tel:[^"]*"/, `href="tel:${siteData.contact.phone}"`);
+    html = html.replace(/href="mailto:[^"]*"/, `href="mailto:${siteData.contact.email}"`);
+
+    // Update version for cache busting
+    const ver = Date.now();
+    html = html.replace(/style\.css\?v=\d+/, `style.css?v=${ver}`);
+    html = html.replace(/script\.js\?v=\d+/, `script.js?v=${ver}`);
+
+    return html;
+}
+
+// ========== 初始化 ==========
+renderPanel('products');
+</script>
+</body>
+</html>
