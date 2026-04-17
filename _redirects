@@ -1,0 +1,3 @@
+# Cloudflare Pages Redirects
+# 强制 HTTPS + www
+https://neecai.com/* https://www.neecai.com/:splat 301

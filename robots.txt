@@ -1,0 +1,8 @@
+# HTTPS 强制跳转
+User-agent: *
+Allow: /
+
+Sitemap: https://www.neecai.com/sitemap.xml
+
+# 多语言 SEO - hreflang
+# 需在 Cloudflare Pages 中配置 _redirects 和 _headers

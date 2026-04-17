@@ -1,0 +1,12 @@
+# Cloudflare Pages 配置
+# 静态站点无需构建步骤
+
+[build]
+  command = ""
+  publish = "./"
+
+[build.environment]
+  NODE_VERSION = "18"
+
+# 自定义域名绑定后，强制 HTTPS
+# 在 Cloudflare Dashboard 中设置即可
