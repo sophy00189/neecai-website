@@ -225,12 +225,64 @@ function handleImgUpload(id, input){
     if(!file) return;
     const reader = new FileReader();
     reader.onload = function(e){
-        const container = document.getElementById('iu_'+id);
-        container.innerHTML = `<input type="file" id="if_${id}" accept="image/*" onchange="handleImgUpload('${id}',this)"><img src="${e.target.result}" class="img-preview">`;
-        container.dataset.imgData = e.target.result;
-        container.dataset.newImg = 'true';
+        // 压缩图片到 500KB 以内
+        compressImage(e.target.result, 500, function(compressedData){
+            const container = document.getElementById('iu_'+id);
+            container.innerHTML = `<input type="file" id="if_${id}" accept="image/*" onchange="handleImgUpload('${id}',this)"><img src="${compressedData}" class="img-preview">`;
+            container.dataset.imgData = compressedData;
+            container.dataset.newImg = 'true';
+            const sizeKB = Math.round(compressedData.length * 3 / 4 / 1024);
+            showToast('图片已压缩至 ' + sizeKB + 'KB','success');
+        });
     };
     reader.readAsDataURL(file);
+}
+
+// 图片压缩：自动调整质量，确保输出 < maxKB KB
+function compressImage(dataUrl, maxKB, callback){
+    const img = new Image();
+    img.onload = function(){
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // 如果原图超过 1920px 宽，先缩放尺寸
+        let w = img.width, h = img.height;
+        const maxDim = 1920;
+        if(w > maxDim || h > maxDim){
+            if(w > h){ h = Math.round(h * maxDim / w); w = maxDim; }
+            else { w = Math.round(w * maxDim / h); h = maxDim; }
+        }
+        canvas.width = w;
+        canvas.height = h;
+        ctx.drawImage(img, 0, 0, w, h);
+        
+        // 逐步降低 JPEG 质量，直到体积 < maxKB
+        let quality = 0.85;
+        let result = canvas.toDataURL('image/jpeg', quality);
+        let sizeKB = result.length * 3 / 4 / 1024;
+        
+        // 如果已经够小，直接返回
+        if(sizeKB <= maxKB){ callback(result); return; }
+        
+        // 质量递减循环
+        while(sizeKB > maxKB && quality > 0.1){
+            quality -= 0.1;
+            result = canvas.toDataURL('image/jpeg', quality);
+            sizeKB = result.length * 3 / 4 / 1024;
+        }
+        
+        // 如果质量降到 0.1 还是太大，缩小尺寸
+        if(sizeKB > maxKB){
+            const scale = Math.sqrt(maxKB / sizeKB);
+            canvas.width = Math.round(w * scale);
+            canvas.height = Math.round(h * scale);
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            result = canvas.toDataURL('image/jpeg', 0.7);
+        }
+        
+        callback(result);
+    };
+    img.src = dataUrl;
 }
 
 function removeImg(id){
