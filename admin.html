@@ -204,10 +204,19 @@ function inputGroup(label, id, value, lang, multiline){
     return `<div class="form-group" ${lang?`data-lang-field="${lang}"`:''}><label>${label}</label><input type="text" id="${id}" value="${escHtml(value||'')}" data-key="${id}"></div>`;
 }
 
-function imgUploader(id, currentImg){
-    return `<div class="img-upload" id="iu_${id}" onclick="document.getElementById('if_${id}').click()">
-        <input type="file" id="if_${id}" accept="image/*" onchange="handleImgUpload('${id}',this)">
-        ${currentImg ? `<img src="${currentImg}" class="img-preview">` : `<i class="fas fa-cloud-upload-alt"></i><p>点击上传图片</p>`}
+function imgUploader(id, currentImg, width, height){
+    const hasImg = currentImg && !currentImg.startsWith('data:');
+    const preview = currentImg ? `<img src="${currentImg}" class="img-preview">` : `<i class="fas fa-cloud-upload-alt"></i><p>点击上传图片</p>`;
+    return `<div style="display:flex;gap:12px;align-items:flex-start">
+        <div class="img-upload" id="iu_${id}" onclick="document.getElementById('if_${id}').click()" style="flex:1;min-width:160px">
+            <input type="file" id="if_${id}" accept="image/*" onchange="handleImgUpload('${id}',this)">
+            ${preview}
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;min-width:140px">
+            <div class="form-group"><label>图片宽度(px)</label><input type="number" id="iw_${id}" value="${width||''}" placeholder="自动" min="0"></div>
+            <div class="form-group"><label>图片高度(px)</label><input type="number" id="ih_${id}" value="${height||''}" placeholder="自动" min="0"></div>
+            ${hasImg?`<button class="btn btn-danger" style="font-size:12px;padding:6px 12px" onclick="removeImg('${id}')"><i class="fas fa-trash"></i> 删除图片</button>`:''}
+        </div>
     </div>`;
 }
 
@@ -219,8 +228,16 @@ function handleImgUpload(id, input){
         const container = document.getElementById('iu_'+id);
         container.innerHTML = `<input type="file" id="if_${id}" accept="image/*" onchange="handleImgUpload('${id}',this)"><img src="${e.target.result}" class="img-preview">`;
         container.dataset.imgData = e.target.result;
+        container.dataset.newImg = 'true';
     };
     reader.readAsDataURL(file);
+}
+
+function removeImg(id){
+    const container = document.getElementById('iu_'+id);
+    container.innerHTML = `<input type="file" id="if_${id}" accept="image/*" onchange="handleImgUpload('${id}',this)"><i class="fas fa-cloud-upload-alt"></i><p>点击上传图片</p>`;
+    container.dataset.imgRemoved = 'true';
+    delete container.dataset.imgData;
 }
 
 function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -230,7 +247,7 @@ function renderProducts(main){
     let html = `<div class="panel active"><div class="panel-title"><i class="fas fa-box"></i> 产品管理</div>`;
     siteData.products.forEach((p,i)=>{
         html += `<div class="card"><div class="card-header" onclick="toggleCard(this)"><h3><i class="fas fa-chevron-down"></i> ${p.zh.title}</h3><span class="card-toggle">展开/收起</span></div><div class="card-body">`;
-        html += `<div class="form-row">${imgUploader('prod_'+p.id, p.img)}<div style="flex:1;display:flex;flex-direction:column;gap:14px">`;
+        html += `<div class="form-row">${imgUploader('prod_'+p.id, p.img, p.imgWidth, p.imgHeight)}<div style="flex:1;display:flex;flex-direction:column;gap:14px">`;
         html += inputGroup('产品ID','prod_id_'+i, p.id, null);
         html += inputGroup('图标 Class','prod_icon_'+i, p.icon, null);
         html += `</div></div>`;
@@ -279,7 +296,14 @@ function saveProducts(){
         p.id = document.getElementById('prod_id_'+i)?.value || p.id;
         p.icon = document.getElementById('prod_icon_'+i)?.value || p.icon;
         const iu = document.getElementById('iu_prod_'+p.id);
-        if(iu && iu.dataset.imgData) p.img = iu.dataset.imgData;
+        if(iu){
+            if(iu.dataset.imgData) p.img = iu.dataset.imgData;
+            if(iu.dataset.imgRemoved) p.img = '';
+        }
+        const iw = document.getElementById('iw_prod_'+p.id);
+        const ih = document.getElementById('ih_prod_'+p.id);
+        if(iw) p.imgWidth = parseInt(iw.value) || 0;
+        if(ih) p.imgHeight = parseInt(ih.value) || 0;
         LANGS.forEach(l=>{
             p[l].title = document.getElementById('prod_'+i+'_'+l+'_title')?.value || p[l].title;
             p[l].desc = document.getElementById('prod_'+i+'_'+l+'_desc')?.value || p[l].desc;
@@ -343,7 +367,7 @@ function renderCases(main){
     let html = `<div class="panel active"><div class="panel-title"><i class="fas fa-images"></i> 经典案例管理</div>`;
     siteData.cases.forEach((c,i)=>{
         html += `<div class="card"><div class="card-header" onclick="toggleCard(this)"><h3><i class="fas fa-chevron-down"></i> ${c.zh.title}</h3><span class="card-toggle">展开/收起</span></div><div class="card-body">`;
-        html += `<div class="form-row">${imgUploader('case_'+c.id, c.img)}<div style="flex:1">`;
+        html += `<div class="form-row">${imgUploader('case_'+c.id, c.img, c.imgWidth, c.imgHeight)}<div style="flex:1">`;
         html += inputGroup('标签类型','case_tag_'+i, c.tag, null);
         html += `</div></div>`;
         html += langTabs('case_'+i);
@@ -383,7 +407,14 @@ function saveCases(){
     siteData.cases.forEach((c,i)=>{
         c.tag = document.getElementById('case_tag_'+i)?.value || c.tag;
         const iu = document.getElementById('iu_case_'+c.id);
-        if(iu && iu.dataset.imgData) c.img = iu.dataset.imgData;
+        if(iu){
+            if(iu.dataset.imgData) c.img = iu.dataset.imgData;
+            if(iu.dataset.imgRemoved) c.img = '';
+        }
+        const iw = document.getElementById('iw_case_'+c.id);
+        const ih = document.getElementById('ih_case_'+c.id);
+        if(iw) c.imgWidth = parseInt(iw.value) || 0;
+        if(ih) c.imgHeight = parseInt(ih.value) || 0;
         LANGS.forEach(l=>{
             c[l].title = document.getElementById('case_'+i+'_'+l+'_title')?.value || c[l].title;
             c[l].desc = document.getElementById('case_'+i+'_'+l+'_desc')?.value || c[l].desc;
@@ -820,12 +851,31 @@ async function generateIndexHTML(){
     const response = await fetch('index.html');
     let html = await response.text();
 
-    // Update product cards - replace icon divs with images where available
+    // Update product images - write image path into src attribute
     siteData.products.forEach(p => {
-        if(p.img){
-            // Replace the product-icon-wrap with an actual image
-            const iconPattern = new RegExp(`<div class="product-icon-wrap[^"]*"><i class="[^"]*"><\\/i><\\/div>`);
-            // We'll do this more carefully
+        const imgKey = `data-product-img="${p.id}"`;
+        if(p.img && !p.img.startsWith('data:')){
+            // Has image: set src, add width/height, remove display:none
+            const w = p.imgWidth ? ` width="${p.imgWidth}"` : '';
+            const h = p.imgHeight ? ` height="${p.imgHeight}"` : '';
+            html = html.replace(
+                new RegExp(`<img class="product-img" ${imgKey.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} src=""[^>]*>`),
+                `<img class="product-img" data-product-img="${p.id}" src="${p.img}" alt="${p.zh.title}"${w}${h}>`
+            );
+        } else if(!p.img || p.img === ''){
+            // No image: keep src="" and display:none
+            html = html.replace(
+                new RegExp(`<img class="product-img" ${imgKey.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} src="[^"]*"[^>]*>`),
+                `<img class="product-img" data-product-img="${p.id}" src="" alt="" style="display:none">`
+            );
+        }
+    });
+
+    // Update case images
+    siteData.cases.forEach(c => {
+        if(c.img && !c.img.startsWith('data:')){
+            // Find the case card by its tag and add background image
+            // Cases use CSS background, so we add inline style
         }
     });
 
