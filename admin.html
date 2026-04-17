@@ -70,6 +70,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC
 .token-input{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:14px;width:100%;font-family:monospace;outline:none}
 .token-input:focus{border-color:var(--accent)}
 .status-bar{position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;justify-content:space-between;font-size:13px;z-index:100}
+.auto-save-indicator{display:inline-flex;align-items:center;gap:5px;color:var(--green);opacity:0;transition:opacity .3s;font-size:12px;margin-left:12px}
+.auto-save-indicator.show{opacity:1}
 .toast{position:fixed;top:80px;right:24px;padding:14px 22px;border-radius:10px;font-size:14px;font-weight:600;z-index:10000;transform:translateX(120%);transition:transform .3s}
 .toast.show{transform:translateX(0)}
 .toast-success{background:var(--green);color:#fff}
@@ -115,7 +117,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC
 
 <div class="status-bar">
     <span id="statusText">就绪</span>
-    <span id="lastSave">未保存</span>
+    <div style="display:flex;align-items:center">
+        <span id="autoSaveIndicator" class="auto-save-indicator"><i class="fas fa-check-circle"></i> 已自动保存</span>
+        <span id="lastSave">未保存</span>
+    </div>
 </div>
 
 <input type="file" id="importFile" accept=".json" style="display:none">
@@ -219,13 +224,212 @@ function loadData(){
 }
 function saveData(){
     localStorage.setItem('neecai_admin_data', JSON.stringify(siteData));
-    document.getElementById('lastSave').textContent = '已保存 ' + new Date().toLocaleTimeString();
+    const now = new Date().toLocaleTimeString();
+    document.getElementById('lastSave').textContent = '已保存 ' + now;
+    // 显示自动保存指示器
+    const indicator = document.getElementById('autoSaveIndicator');
+    if(indicator){
+        indicator.classList.add('show');
+        clearTimeout(indicator._hideTimer);
+        indicator._hideTimer = setTimeout(()=>{ indicator.classList.remove('show'); }, 2500);
+    }
 }
+
+// ========== 自动保存系统 ==========
+let autoSaveTimer = null;
+let currentPanel = 'products';
+
+function autoSave(){
+    if(autoSaveTimer) clearTimeout(autoSaveTimer);
+    autoSaveTimer = setTimeout(()=>{
+        // 从当前面板收集数据到 siteData
+        collectCurrentPanelData();
+        saveData();
+        // 显示自动保存提示
+        const indicator = document.getElementById('autoSaveIndicator');
+        if(indicator){
+            indicator.style.opacity = '1';
+            setTimeout(()=>{ indicator.style.opacity = '0'; }, 2000);
+        }
+    }, 500);
+}
+
+function collectCurrentPanelData(){
+    const activeNav = document.querySelector('.nav-item.active');
+    if(!activeNav) return;
+    const panel = activeNav.dataset.panel;
+    
+    switch(panel){
+        case 'products': collectProducts(); break;
+        case 'solutions': collectSolutions(); break;
+        case 'cases': collectCases(); break;
+        case 'hero': collectHero(); break;
+        case 'about': collectAbout(); break;
+        case 'contact': collectContact(); break;
+        case 'advantages': collectAdvantages(); break;
+        case 'testimonials': collectTestimonials(); break;
+        case 'form': collectForm(); break;
+    }
+}
+
+function collectProducts(){
+    siteData.products.forEach((p,i)=>{
+        p.id = document.getElementById('prod_id_'+i)?.value || p.id;
+        p.icon = document.getElementById('prod_icon_'+i)?.value || p.icon;
+        const parent = document.getElementById('ie_prod_'+p.id)?.parentElement;
+        if(parent){
+            if(parent.dataset.imgData) p.img = parent.dataset.imgData;
+            if(parent.dataset.imgRemoved) p.img = '';
+        }
+        const imgEl = document.getElementById('ieimg_prod_'+p.id);
+        if(imgEl){
+            p.imgWidth = parseInt(imgEl.style.width) || 0;
+            p.imgHeight = parseInt(imgEl.style.height) || 0;
+            p.imgX = parseInt(imgEl.style.left) || 0;
+            p.imgY = parseInt(imgEl.style.top) || 0;
+        }
+        LANGS.forEach(l=>{
+            p[l].title = document.getElementById('prod_'+i+'_'+l+'_title')?.value || p[l].title;
+            p[l].desc = document.getElementById('prod_'+i+'_'+l+'_desc')?.value || p[l].desc;
+            p[l].f1 = document.getElementById('prod_'+i+'_'+l+'_f1')?.value || p[l].f1;
+            p[l].f2 = document.getElementById('prod_'+i+'_'+l+'_f2')?.value || p[l].f2;
+            p[l].f3 = document.getElementById('prod_'+i+'_'+l+'_f3')?.value || p[l].f3;
+        });
+    });
+}
+
+function collectSolutions(){
+    siteData.solutions.forEach((s,i)=>{
+        LANGS.forEach(l=>{
+            s[l].tab = document.getElementById('sol_'+i+'_'+l+'_tab')?.value || s[l].tab;
+            s[l].title = document.getElementById('sol_'+i+'_'+l+'_title')?.value || s[l].title;
+            s[l].desc = document.getElementById('sol_'+i+'_'+l+'_desc')?.value || s[l].desc;
+            s[l].f1_t = document.getElementById('sol_'+i+'_'+l+'_f1_t')?.value || s[l].f1_t;
+            s[l].f1_d = document.getElementById('sol_'+i+'_'+l+'_f1_d')?.value || s[l].f1_d;
+            s[l].f2_t = document.getElementById('sol_'+i+'_'+l+'_f2_t')?.value || s[l].f2_t;
+            s[l].f2_d = document.getElementById('sol_'+i+'_'+l+'_f2_d')?.value || s[l].f2_d;
+            s[l].f3_t = document.getElementById('sol_'+i+'_'+l+'_f3_t')?.value || s[l].f3_t;
+            s[l].f3_d = document.getElementById('sol_'+i+'_'+l+'_f3_d')?.value || s[l].f3_d;
+        });
+    });
+}
+
+function collectCases(){
+    siteData.cases.forEach((c,i)=>{
+        c.tag = document.getElementById('case_tag_'+i)?.value || c.tag;
+        const parent = document.getElementById('ie_case_'+c.id)?.parentElement;
+        if(parent){
+            if(parent.dataset.imgData) c.img = parent.dataset.imgData;
+            if(parent.dataset.imgRemoved) c.img = '';
+        }
+        const imgEl = document.getElementById('ieimg_case_'+c.id);
+        if(imgEl){
+            c.imgWidth = parseInt(imgEl.style.width) || 0;
+            c.imgHeight = parseInt(imgEl.style.height) || 0;
+            c.imgX = parseInt(imgEl.style.left) || 0;
+            c.imgY = parseInt(imgEl.style.top) || 0;
+        }
+        LANGS.forEach(l=>{
+            c[l].title = document.getElementById('case_'+i+'_'+l+'_title')?.value || c[l].title;
+            c[l].desc = document.getElementById('case_'+i+'_'+l+'_desc')?.value || c[l].desc;
+        });
+    });
+}
+
+function collectHero(){
+    LANGS.forEach(l=>{
+        siteData.hero[l].badge = document.getElementById('hero_'+l+'_badge')?.value || siteData.hero[l].badge;
+        siteData.hero[l].t1 = document.getElementById('hero_'+l+'_t1')?.value || siteData.hero[l].t1;
+        siteData.hero[l].t2 = document.getElementById('hero_'+l+'_t2')?.value || siteData.hero[l].t2;
+        siteData.hero[l].desc = document.getElementById('hero_'+l+'_desc')?.value || siteData.hero[l].desc;
+    });
+    siteData.stats.years = document.getElementById('stat_years')?.value || siteData.stats.years;
+    siteData.stats.projects = document.getElementById('stat_projects')?.value || siteData.stats.projects;
+    siteData.stats.countries = document.getElementById('stat_countries')?.value || siteData.stats.countries;
+    siteData.stats.patents = document.getElementById('stat_patents')?.value || siteData.stats.patents;
+}
+
+function collectAbout(){
+    LANGS.forEach(l=>{
+        siteData.about[l].title = document.getElementById('about_'+l+'_title')?.value || siteData.about[l].title;
+        siteData.about[l].lead = document.getElementById('about_'+l+'_lead')?.value || siteData.about[l].lead;
+        siteData.about[l].p1 = document.getElementById('about_'+l+'_p1')?.value || siteData.about[l].p1;
+        siteData.about[l].p2 = document.getElementById('about_'+l+'_p2')?.value || siteData.about[l].p2;
+    });
+}
+
+function collectContact(){
+    siteData.contact.phone = document.getElementById('ct_phone')?.value || siteData.contact.phone;
+    siteData.contact.email = document.getElementById('ct_email')?.value || siteData.contact.email;
+    siteData.contact.address_zh = document.getElementById('ct_addr_zh')?.value || siteData.contact.address_zh;
+    siteData.contact.address_en = document.getElementById('ct_addr_en')?.value || siteData.contact.address_en;
+    siteData.contact.address_es = document.getElementById('ct_addr_es')?.value || siteData.contact.address_es;
+    siteData.contact.address_pt = document.getElementById('ct_addr_pt')?.value || siteData.contact.address_pt;
+}
+
+function collectAdvantages(){
+    siteData.advantages.forEach((a,i)=>{
+        a.icon = document.getElementById('adv_icon_'+i)?.value || a.icon;
+        LANGS.forEach(l=>{
+            a[l].title = document.getElementById('adv_'+i+'_'+l+'_title')?.value || a[l].title;
+            a[l].desc = document.getElementById('adv_'+i+'_'+l+'_desc')?.value || a[l].desc;
+        });
+    });
+}
+
+function collectTestimonials(){
+    siteData.testimonials.forEach((t,i)=>{
+        LANGS.forEach(l=>{
+            t[l].text = document.getElementById('testi_'+i+'_'+l+'_text')?.value || t[l].text;
+            t[l].name = document.getElementById('testi_'+i+'_'+l+'_name')?.value || t[l].name;
+            t[l].role = document.getElementById('testi_'+i+'_'+l+'_role')?.value || t[l].role;
+        });
+    });
+}
+
+function collectForm(){
+    LANGS.forEach(l=>{
+        siteData.form[l].title = document.getElementById('form_'+l+'_title')?.value || siteData.form[l].title;
+        siteData.form[l].subtitle = document.getElementById('form_'+l+'_subtitle')?.value || siteData.form[l].subtitle;
+        siteData.form[l].name = document.getElementById('form_'+l+'_name')?.value || siteData.form[l].name;
+        siteData.form[l].name_ph = document.getElementById('form_'+l+'_name_ph')?.value || siteData.form[l].name_ph;
+        siteData.form[l].company = document.getElementById('form_'+l+'_company')?.value || siteData.form[l].company;
+        siteData.form[l].company_ph = document.getElementById('form_'+l+'_company_ph')?.value || siteData.form[l].company_ph;
+        siteData.form[l].email = document.getElementById('form_'+l+'_email')?.value || siteData.form[l].email;
+        siteData.form[l].email_ph = document.getElementById('form_'+l+'_email_ph')?.value || siteData.form[l].email_ph;
+        siteData.form[l].phone = document.getElementById('form_'+l+'_phone')?.value || siteData.form[l].phone;
+        siteData.form[l].phone_ph = document.getElementById('form_'+l+'_phone_ph')?.value || siteData.form[l].phone_ph;
+        siteData.form[l].product = document.getElementById('form_'+l+'_product')?.value || siteData.form[l].product;
+        siteData.form[l].select = document.getElementById('form_'+l+'_select')?.value || siteData.form[l].select;
+        siteData.form[l].msg = document.getElementById('form_'+l+'_msg')?.value || siteData.form[l].msg;
+        siteData.form[l].msg_ph = document.getElementById('form_'+l+'_msg_ph')?.value || siteData.form[l].msg_ph;
+        siteData.form[l].submit = document.getElementById('form_'+l+'_submit')?.value || siteData.form[l].submit;
+    });
+    LANGS.forEach(l=>{
+        const p = siteData.popup;
+        p[l].title = document.getElementById('popup_'+l+'_title')?.value || p[l].title;
+        p[l].subtitle = document.getElementById('popup_'+l+'_subtitle')?.value || p[l].subtitle;
+        p[l].name_ph = document.getElementById('popup_'+l+'_name_ph')?.value || p[l].name_ph;
+        p[l].email_ph = document.getElementById('popup_'+l+'_email_ph')?.value || p[l].email_ph;
+        p[l].phone_ph = document.getElementById('popup_'+l+'_phone_ph')?.value || p[l].phone_ph;
+        p[l].select = document.getElementById('popup_'+l+'_select')?.value || p[l].select;
+        p[l].msg_ph = document.getElementById('popup_'+l+'_msg_ph')?.value || p[l].msg_ph;
+        p[l].submit = document.getElementById('popup_'+l+'_submit')?.value || p[l].submit;
+        p[l].trust1 = document.getElementById('popup_'+l+'_trust1')?.value || p[l].trust1;
+        p[l].trust2 = document.getElementById('popup_'+l+'_trust2')?.value || p[l].trust2;
+        p[l].trust3 = document.getElementById('popup_'+l+'_trust3')?.value || p[l].trust3;
+    });
+}
+
 loadData();
 
 // ========== 导航 ==========
 document.querySelectorAll('.nav-item').forEach(item=>{
     item.addEventListener('click',()=>{
+        // 切换前先保存当前面板数据
+        if(autoSaveTimer){ clearTimeout(autoSaveTimer); autoSaveTimer = null; }
+        collectCurrentPanelData();
+        saveData();
         document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
         item.classList.add('active');
         renderPanel(item.dataset.panel);
@@ -291,7 +495,7 @@ function switchLang(prefix, lang){
 }
 
 function inputGroup(label, id, value, lang, multiline){
-    const autoTransAttr = lang === 'zh' ? ` oninput="debounceTranslate('${id}', this.value)"` : '';
+    const autoTransAttr = lang === 'zh' ? ` oninput="debounceTranslate('${id}', this.value); autoSave()"` : ` oninput="autoSave()"`;
     if(multiline) return `<div class="form-group" ${lang?`data-lang-field="${lang}"`:''}><label>${label}</label><textarea id="${id}" data-key="${id}"${autoTransAttr}>${value||''}</textarea></div>`;
     return `<div class="form-group" ${lang?`data-lang-field="${lang}"`:''}><label>${label}</label><input type="text" id="${id}" value="${escHtml(value||'')}" data-key="${id}"${autoTransAttr}></div>`;
 }
@@ -547,6 +751,7 @@ function handleImgUpload(id, input){
             initImgEditor(id);
             const sizeKB = Math.round(compressedData.length * 3 / 4 / 1024);
             showToast('图片已压缩至 ' + sizeKB + 'KB','success');
+            autoSave();
         });
     };
     reader.readAsDataURL(file);
@@ -597,6 +802,7 @@ function removeImg(id){
     </div>`;
     parent.dataset.imgRemoved = 'true';
     delete parent.dataset.imgData;
+    autoSave();
 }
 
 // ========== 图片编辑器：拖拽移动 + 拖角调整大小 ==========
@@ -657,7 +863,7 @@ function initImgEditor(id){
     document.addEventListener('mousemove', function(e){ onDragMove(e.clientX, e.clientY); });
     document.addEventListener('touchmove', function(e){ if(isDragging){ e.preventDefault(); onDragMove(e.touches[0].clientX, e.touches[0].clientY); } }, {passive:false});
 
-    function onDragEnd(){ isDragging = false; isResizing = false; }
+    function onDragEnd(){ isDragging = false; isResizing = false; autoSave(); }
     document.addEventListener('mouseup', onDragEnd);
     document.addEventListener('touchend', onDragEnd);
 
@@ -771,31 +977,7 @@ function removeProduct(i){
 }
 
 function saveProducts(){
-    siteData.products.forEach((p,i)=>{
-        p.id = document.getElementById('prod_id_'+i)?.value || p.id;
-        p.icon = document.getElementById('prod_icon_'+i)?.value || p.icon;
-        // 读取图片数据
-        const parent = document.getElementById('ie_prod_'+p.id)?.parentElement;
-        if(parent){
-            if(parent.dataset.imgData) p.img = parent.dataset.imgData;
-            if(parent.dataset.imgRemoved) p.img = '';
-        }
-        // 读取编辑器中的图片尺寸和位置
-        const imgEl = document.getElementById('ieimg_prod_'+p.id);
-        if(imgEl){
-            p.imgWidth = parseInt(imgEl.style.width) || 0;
-            p.imgHeight = parseInt(imgEl.style.height) || 0;
-            p.imgX = parseInt(imgEl.style.left) || 0;
-            p.imgY = parseInt(imgEl.style.top) || 0;
-        }
-        LANGS.forEach(l=>{
-            p[l].title = document.getElementById('prod_'+i+'_'+l+'_title')?.value || p[l].title;
-            p[l].desc = document.getElementById('prod_'+i+'_'+l+'_desc')?.value || p[l].desc;
-            p[l].f1 = document.getElementById('prod_'+i+'_'+l+'_f1')?.value || p[l].f1;
-            p[l].f2 = document.getElementById('prod_'+i+'_'+l+'_f2')?.value || p[l].f2;
-            p[l].f3 = document.getElementById('prod_'+i+'_'+l+'_f3')?.value || p[l].f3;
-        });
-    });
+    collectProducts();
     saveData();
     showToast('产品数据已保存','success');
 }
@@ -829,19 +1011,7 @@ function renderSolutions(main){
 }
 
 function saveSolutions(){
-    siteData.solutions.forEach((s,i)=>{
-        LANGS.forEach(l=>{
-            s[l].tab = document.getElementById('sol_'+i+'_'+l+'_tab')?.value || s[l].tab;
-            s[l].title = document.getElementById('sol_'+i+'_'+l+'_title')?.value || s[l].title;
-            s[l].desc = document.getElementById('sol_'+i+'_'+l+'_desc')?.value || s[l].desc;
-            s[l].f1_t = document.getElementById('sol_'+i+'_'+l+'_f1_t')?.value || s[l].f1_t;
-            s[l].f1_d = document.getElementById('sol_'+i+'_'+l+'_f1_d')?.value || s[l].f1_d;
-            s[l].f2_t = document.getElementById('sol_'+i+'_'+l+'_f2_t')?.value || s[l].f2_t;
-            s[l].f2_d = document.getElementById('sol_'+i+'_'+l+'_f2_d')?.value || s[l].f2_d;
-            s[l].f3_t = document.getElementById('sol_'+i+'_'+l+'_f3_t')?.value || s[l].f3_t;
-            s[l].f3_d = document.getElementById('sol_'+i+'_'+l+'_f3_d')?.value || s[l].f3_d;
-        });
-    });
+    collectSolutions();
     saveData();
     showToast('方案数据已保存','success');
 }
@@ -889,25 +1059,7 @@ function removeCase(i){
 }
 
 function saveCases(){
-    siteData.cases.forEach((c,i)=>{
-        c.tag = document.getElementById('case_tag_'+i)?.value || c.tag;
-        const parent = document.getElementById('ie_case_'+c.id)?.parentElement;
-        if(parent){
-            if(parent.dataset.imgData) c.img = parent.dataset.imgData;
-            if(parent.dataset.imgRemoved) c.img = '';
-        }
-        const imgEl = document.getElementById('ieimg_case_'+c.id);
-        if(imgEl){
-            c.imgWidth = parseInt(imgEl.style.width) || 0;
-            c.imgHeight = parseInt(imgEl.style.height) || 0;
-            c.imgX = parseInt(imgEl.style.left) || 0;
-            c.imgY = parseInt(imgEl.style.top) || 0;
-        }
-        LANGS.forEach(l=>{
-            c[l].title = document.getElementById('case_'+i+'_'+l+'_title')?.value || c[l].title;
-            c[l].desc = document.getElementById('case_'+i+'_'+l+'_desc')?.value || c[l].desc;
-        });
-    });
+    collectCases();
     saveData();
     showToast('案例数据已保存','success');
 }
@@ -940,16 +1092,7 @@ function renderHero(main){
 }
 
 function saveHero(){
-    LANGS.forEach(l=>{
-        siteData.hero[l].badge = document.getElementById('hero_'+l+'_badge')?.value || siteData.hero[l].badge;
-        siteData.hero[l].t1 = document.getElementById('hero_'+l+'_t1')?.value || siteData.hero[l].t1;
-        siteData.hero[l].t2 = document.getElementById('hero_'+l+'_t2')?.value || siteData.hero[l].t2;
-        siteData.hero[l].desc = document.getElementById('hero_'+l+'_desc')?.value || siteData.hero[l].desc;
-    });
-    siteData.stats.years = parseInt(document.getElementById('stat_years')?.value) || siteData.stats.years;
-    siteData.stats.projects = parseInt(document.getElementById('stat_projects')?.value) || siteData.stats.projects;
-    siteData.stats.countries = parseInt(document.getElementById('stat_countries')?.value) || siteData.stats.countries;
-    siteData.stats.patents = parseInt(document.getElementById('stat_patents')?.value) || siteData.stats.patents;
+    collectHero();
     saveData();
     showToast('首页数据已保存','success');
 }
@@ -973,12 +1116,7 @@ function renderAbout(main){
 }
 
 function saveAbout(){
-    LANGS.forEach(l=>{
-        siteData.about[l].title = document.getElementById('about_'+l+'_title')?.value || siteData.about[l].title;
-        siteData.about[l].lead = document.getElementById('about_'+l+'_lead')?.value || siteData.about[l].lead;
-        siteData.about[l].p1 = document.getElementById('about_'+l+'_p1')?.value || siteData.about[l].p1;
-        siteData.about[l].p2 = document.getElementById('about_'+l+'_p2')?.value || siteData.about[l].p2;
-    });
+    collectAbout();
     saveData();
     showToast('公司信息已保存','success');
 }
@@ -999,12 +1137,7 @@ function renderContact(main){
 }
 
 function saveContact(){
-    siteData.contact.phone = document.getElementById('ct_phone')?.value || siteData.contact.phone;
-    siteData.contact.email = document.getElementById('ct_email')?.value || siteData.contact.email;
-    siteData.contact.address_zh = document.getElementById('ct_addr_zh')?.value || siteData.contact.address_zh;
-    siteData.contact.address_en = document.getElementById('ct_addr_en')?.value || siteData.contact.address_en;
-    siteData.contact.address_es = document.getElementById('ct_addr_es')?.value || siteData.contact.address_es;
-    siteData.contact.address_pt = document.getElementById('ct_addr_pt')?.value || siteData.contact.address_pt;
+    collectContact();
     saveData();
     showToast('联系方式已保存','success');
 }
@@ -1047,13 +1180,7 @@ function removeAdvantage(i){
 }
 
 function saveAdvantages(){
-    siteData.advantages.forEach((a,i)=>{
-        a.icon = document.getElementById('adv_icon_'+i)?.value || a.icon;
-        LANGS.forEach(l=>{
-            a[l].title = document.getElementById('adv_'+i+'_'+l+'_title')?.value || a[l].title;
-            a[l].desc = document.getElementById('adv_'+i+'_'+l+'_desc')?.value || a[l].desc;
-        });
-    });
+    collectAdvantages();
     saveData(); showToast('优势数据已保存','success');
 }
 
@@ -1095,13 +1222,7 @@ function removeTestimonial(i){
 }
 
 function saveTestimonials(){
-    siteData.testimonials.forEach((t,i)=>{
-        LANGS.forEach(l=>{
-            t[l].text = document.getElementById('testi_'+i+'_'+l+'_text')?.value || t[l].text;
-            t[l].name = document.getElementById('testi_'+i+'_'+l+'_name')?.value || t[l].name;
-            t[l].role = document.getElementById('testi_'+i+'_'+l+'_role')?.value || t[l].role;
-        });
-    });
+    collectTestimonials();
     saveData(); showToast('评价数据已保存','success');
 }
 
@@ -1167,16 +1288,7 @@ function renderForm(main){
 }
 
 function saveForm(){
-    LANGS.forEach(l=>{
-        ['title','subtitle','name','name_ph','company','company_ph','email','email_ph','phone','phone_ph','product','select','msg','msg_ph','submit'].forEach(k=>{
-            const el = document.getElementById('form_'+l+'_'+k);
-            if(el) siteData.form[l][k] = el.value;
-        });
-        ['title','subtitle','name_ph','email_ph','phone_ph','select','msg_ph','submit','trust1','trust2','trust3'].forEach(k=>{
-            const el = document.getElementById('popup_'+l+'_'+k);
-            if(el) siteData.popup[l][k] = el.value;
-        });
-    });
+    collectForm();
     saveData(); showToast('表单数据已保存','success');
 }
 
