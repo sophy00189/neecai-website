@@ -44,19 +44,29 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC
 .lang-tabs{display:flex;gap:4px;margin-bottom:12px;background:var(--bg);border-radius:8px;padding:4px}
 .lang-tab{padding:6px 16px;border-radius:6px;border:none;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;background:transparent;color:var(--text3);transition:all .2s}
 .lang-tab.active{background:var(--accent);color:#fff}
-.img-upload{border:2px dashed var(--border);border-radius:var(--radius);padding:24px;text-align:center;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;min-height:120px;display:flex;align-items:center;justify-content:center}
+.img-upload{border:2px dashed var(--border);border-radius:var(--radius);padding:24px;text-align:center;cursor:pointer;transition:all .2s;min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center}
 .img-upload:hover{border-color:var(--accent);background:rgba(255,107,53,.04)}
 .img-upload input{display:none}
 .img-upload i.fa-cloud-upload-alt{font-size:28px;color:var(--text3);margin-bottom:8px}
 .img-upload p{font-size:13px;color:var(--text3)}
-.img-upload .img-preview{max-width:100%;max-height:200px;border-radius:8px;display:block;margin:0 auto}
-/* 可拖拽调整大小的图片容器 */
-.img-resizable{position:relative;display:inline-block;border:2px solid var(--accent);border-radius:8px;overflow:visible;margin:8px auto;cursor:default}
-.img-resizable img{display:block;width:100%;height:100%;object-fit:cover;border-radius:6px;pointer-events:none}
-.img-resize-handle{position:absolute;width:14px;height:14px;background:var(--accent);border:2px solid #fff;border-radius:3px;cursor:nwse-resize;z-index:10;bottom:-2px;right:-2px}
-.img-resize-handle::after{content:'';position:absolute;bottom:2px;right:2px;width:6px;height:6px;border-right:2px solid #fff;border-bottom:2px solid #fff}
-.img-size-label{position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;font-size:11px;padding:2px 8px;border-radius:4px;white-space:nowrap;pointer-events:none}
-.img-toolbar{display:flex;gap:6px;margin-top:6px;justify-content:center}
+/* 图片编辑器 */
+.img-editor{background:#111827;border:2px solid var(--accent);border-radius:12px;overflow:hidden;margin:8px 0}
+.img-editor-header{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:rgba(255,107,53,.1);border-bottom:1px solid rgba(255,107,53,.2);font-size:12px;color:var(--accent2)}
+.img-editor-info{display:flex;align-items:center;gap:12px}
+.img-editor-canvas{position:relative;width:100%;height:280px;background:repeating-conic-gradient(#1e293b 0% 25%,#0f172a 0% 50%) 50%/16px 16px;overflow:hidden;cursor:grab}
+.img-editor-canvas:active{cursor:grabbing}
+.img-editor-canvas img{position:absolute;user-select:none;-webkit-user-drag:none}
+/* 8个调整手柄 */
+.img-editor-handle{position:absolute;width:12px;height:12px;background:#fff;border:2px solid var(--accent);z-index:10;border-radius:2px}
+.img-editor-handle.h-tl{top:-6px;left:-6px;cursor:nwse-resize}
+.img-editor-handle.h-tr{top:-6px;right:-6px;cursor:nesw-resize}
+.img-editor-handle.h-bl{bottom:-6px;left:-6px;cursor:nesw-resize}
+.img-editor-handle.h-br{bottom:-6px;right:-6px;cursor:nwse-resize}
+.img-editor-handle.h-t{top:-6px;left:50%;transform:translateX(-50%);cursor:ns-resize}
+.img-editor-handle.h-b{bottom:-6px;left:50%;transform:translateX(-50%);cursor:ns-resize}
+.img-editor-handle.h-l{top:50%;left:-6px;transform:translateY(-50%);cursor:ew-resize}
+.img-editor-handle.h-r{top:50%;right:-6px;transform:translateY(-50%);cursor:ew-resize}
+.img-toolbar{display:flex;gap:6px;margin-top:8px;justify-content:center}
 .token-input{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:14px;width:100%;font-family:monospace;outline:none}
 .token-input:focus{border-color:var(--accent)}
 .status-bar{position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;justify-content:space-between;font-size:13px;z-index:100}
@@ -210,18 +220,39 @@ function inputGroup(label, id, value, lang, multiline){
 }
 
 function imgUploader(id, currentImg, width, height){
-    const hasImg = currentImg && !currentImg.startsWith('data:');
-    const preview = currentImg ? `<img src="${currentImg}" class="img-preview">` : `<i class="fas fa-cloud-upload-alt"></i><p>点击上传图片</p>`;
-    return `<div style="display:flex;gap:12px;align-items:flex-start">
-        <div class="img-upload" id="iu_${id}" onclick="document.getElementById('if_${id}').click()" style="flex:1;min-width:160px">
-            <input type="file" id="if_${id}" accept="image/*" onchange="handleImgUpload('${id}',this)">
-            ${preview}
-        </div>
-        <div style="display:flex;flex-direction:column;gap:8px;min-width:140px">
-            <div class="form-group"><label>图片宽度(px)</label><input type="number" id="iw_${id}" value="${width||''}" placeholder="自动" min="0"></div>
-            <div class="form-group"><label>图片高度(px)</label><input type="number" id="ih_${id}" value="${height||''}" placeholder="自动" min="0"></div>
-            ${hasImg?`<button class="btn btn-danger" style="font-size:12px;padding:6px 12px" onclick="removeImg('${id}')"><i class="fas fa-trash"></i> 删除图片</button>`:''}
-        </div>
+    const hasImg = currentImg && currentImg !== '';
+    if(hasImg){
+        const src = currentImg;
+        const w = width || 240;
+        const h = height || 160;
+        return `<div>
+            <div class="img-editor" id="ie_${id}">
+                <div class="img-editor-header">
+                    <div class="img-editor-info"><i class="fas fa-arrows-alt"></i> 拖拽移动 &nbsp; <i class="fas fa-expand-arrows-alt"></i> 拖角调整大小</div>
+                    <div id="iedim_${id}" style="font-weight:700">${w} × ${h}</div>
+                </div>
+                <div class="img-editor-canvas" id="iec_${id}">
+                    <img src="${src}" id="ieimg_${id}" style="left:10px;top:10px;width:${w}px;height:${h}px">
+                    <div class="img-editor-handle h-tl" data-dir="tl"></div>
+                    <div class="img-editor-handle h-tr" data-dir="tr"></div>
+                    <div class="img-editor-handle h-bl" data-dir="bl"></div>
+                    <div class="img-editor-handle h-br" data-dir="br"></div>
+                    <div class="img-editor-handle h-t" data-dir="t"></div>
+                    <div class="img-editor-handle h-b" data-dir="b"></div>
+                    <div class="img-editor-handle h-l" data-dir="l"></div>
+                    <div class="img-editor-handle h-r" data-dir="r"></div>
+                </div>
+            </div>
+            <div class="img-toolbar">
+                <button class="btn btn-secondary" style="font-size:12px;padding:4px 10px" onclick="document.getElementById('if_${id}').click()"><i class="fas fa-exchange-alt"></i> 更换图片</button>
+                <button class="btn btn-danger" style="font-size:12px;padding:4px 10px" onclick="removeImg('${id}')"><i class="fas fa-trash"></i> 删除</button>
+            </div>
+            <input type="file" id="if_${id}" accept="image/*" onchange="handleImgUpload('${id}',this)" style="display:none">
+        </div>`;
+    }
+    return `<div class="img-upload" id="iu_${id}" onclick="document.getElementById('if_${id}').click()">
+        <input type="file" id="if_${id}" accept="image/*" onchange="handleImgUpload('${id}',this)">
+        <i class="fas fa-cloud-upload-alt"></i><p>点击上传图片</p>
     </div>`;
 }
 
@@ -230,12 +261,38 @@ function handleImgUpload(id, input){
     if(!file) return;
     const reader = new FileReader();
     reader.onload = function(e){
-        // 压缩图片到 500KB 以内
         compressImage(e.target.result, 500, function(compressedData){
-            const container = document.getElementById('iu_'+id);
-            container.innerHTML = `<input type="file" id="if_${id}" accept="image/*" onchange="handleImgUpload('${id}',this)"><img src="${compressedData}" class="img-preview">`;
-            container.dataset.imgData = compressedData;
-            container.dataset.newImg = 'true';
+            // 用新图片替换编辑器区域
+            const wrapper = document.getElementById('iu_'+id) || document.getElementById('ie_'+id);
+            const parent = wrapper ? wrapper.parentElement : null;
+            if(!parent) return;
+            const w = 240, h = 160;
+            parent.innerHTML = `
+            <div class="img-editor" id="ie_${id}">
+                <div class="img-editor-header">
+                    <div class="img-editor-info"><i class="fas fa-arrows-alt"></i> 拖拽移动 &nbsp; <i class="fas fa-expand-arrows-alt"></i> 拖角调整大小</div>
+                    <div id="iedim_${id}" style="font-weight:700">${w} × ${h}</div>
+                </div>
+                <div class="img-editor-canvas" id="iec_${id}">
+                    <img src="${compressedData}" id="ieimg_${id}" style="left:10px;top:10px;width:${w}px;height:${h}px">
+                    <div class="img-editor-handle h-tl" data-dir="tl"></div>
+                    <div class="img-editor-handle h-tr" data-dir="tr"></div>
+                    <div class="img-editor-handle h-bl" data-dir="bl"></div>
+                    <div class="img-editor-handle h-br" data-dir="br"></div>
+                    <div class="img-editor-handle h-t" data-dir="t"></div>
+                    <div class="img-editor-handle h-b" data-dir="b"></div>
+                    <div class="img-editor-handle h-l" data-dir="l"></div>
+                    <div class="img-editor-handle h-r" data-dir="r"></div>
+                </div>
+            </div>
+            <div class="img-toolbar">
+                <button class="btn btn-secondary" style="font-size:12px;padding:4px 10px" onclick="document.getElementById('if_${id}').click()"><i class="fas fa-exchange-alt"></i> 更换图片</button>
+                <button class="btn btn-danger" style="font-size:12px;padding:4px 10px" onclick="removeImg('${id}')"><i class="fas fa-trash"></i> 删除</button>
+            </div>
+            <input type="file" id="if_${id}" accept="image/*" onchange="handleImgUpload('${id}',this)" style="display:none">`;
+            parent.dataset.imgData = compressedData;
+            parent.dataset.newImg = 'true';
+            initImgEditor(id);
             const sizeKB = Math.round(compressedData.length * 3 / 4 / 1024);
             showToast('图片已压缩至 ' + sizeKB + 'KB','success');
         });
@@ -249,34 +306,23 @@ function compressImage(dataUrl, maxKB, callback){
     img.onload = function(){
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
-        
-        // 如果原图超过 1920px 宽，先缩放尺寸
         let w = img.width, h = img.height;
         const maxDim = 1920;
         if(w > maxDim || h > maxDim){
             if(w > h){ h = Math.round(h * maxDim / w); w = maxDim; }
             else { w = Math.round(w * maxDim / h); h = maxDim; }
         }
-        canvas.width = w;
-        canvas.height = h;
+        canvas.width = w; canvas.height = h;
         ctx.drawImage(img, 0, 0, w, h);
-        
-        // 逐步降低 JPEG 质量，直到体积 < maxKB
         let quality = 0.85;
         let result = canvas.toDataURL('image/jpeg', quality);
         let sizeKB = result.length * 3 / 4 / 1024;
-        
-        // 如果已经够小，直接返回
         if(sizeKB <= maxKB){ callback(result); return; }
-        
-        // 质量递减循环
         while(sizeKB > maxKB && quality > 0.1){
             quality -= 0.1;
             result = canvas.toDataURL('image/jpeg', quality);
             sizeKB = result.length * 3 / 4 / 1024;
         }
-        
-        // 如果质量降到 0.1 还是太大，缩小尺寸
         if(sizeKB > maxKB){
             const scale = Math.sqrt(maxKB / sizeKB);
             canvas.width = Math.round(w * scale);
@@ -284,18 +330,141 @@ function compressImage(dataUrl, maxKB, callback){
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
             result = canvas.toDataURL('image/jpeg', 0.7);
         }
-        
         callback(result);
     };
     img.src = dataUrl;
 }
 
 function removeImg(id){
-    const container = document.getElementById('iu_'+id);
-    container.innerHTML = `<input type="file" id="if_${id}" accept="image/*" onchange="handleImgUpload('${id}',this)"><i class="fas fa-cloud-upload-alt"></i><p>点击上传图片</p>`;
-    container.dataset.imgRemoved = 'true';
-    delete container.dataset.imgData;
+    const editor = document.getElementById('ie_'+id);
+    const parent = editor ? editor.parentElement : null;
+    if(!parent) return;
+    parent.innerHTML = `<div class="img-upload" id="iu_${id}" onclick="document.getElementById('if_${id}').click()">
+        <input type="file" id="if_${id}" accept="image/*" onchange="handleImgUpload('${id}',this)">
+        <i class="fas fa-cloud-upload-alt"></i><p>点击上传图片</p>
+    </div>`;
+    parent.dataset.imgRemoved = 'true';
+    delete parent.dataset.imgData;
 }
+
+// ========== 图片编辑器：拖拽移动 + 拖角调整大小 ==========
+function initImgEditor(id){
+    const canvas = document.getElementById('iec_'+id);
+    const img = document.getElementById('ieimg_'+id);
+    const dimLabel = document.getElementById('iedim_'+id);
+    if(!canvas || !img) return;
+
+    // 读取图片当前状态
+    function getImgState(){
+        return {
+            x: parseInt(img.style.left) || 0,
+            y: parseInt(img.style.top) || 0,
+            w: parseInt(img.style.width) || img.naturalWidth || 200,
+            h: parseInt(img.style.height) || img.naturalHeight || 150
+        };
+    }
+
+    function setImgState(s){
+        img.style.left = s.x + 'px';
+        img.style.top = s.y + 'px';
+        img.style.width = s.w + 'px';
+        img.style.height = s.h + 'px';
+        if(dimLabel) dimLabel.textContent = Math.round(s.w) + ' × ' + Math.round(s.h);
+    }
+
+    // --- 拖拽移动图片 ---
+    let isDragging = false, dragStartX, dragStartY, origState;
+
+    img.addEventListener('mousedown', function(e){
+        if(e.target.classList.contains('img-editor-handle')) return;
+        e.preventDefault();
+        isDragging = true;
+        dragStartX = e.clientX;
+        dragStartY = e.clientY;
+        origState = getImgState();
+    });
+
+    // 触摸拖拽
+    img.addEventListener('touchstart', function(e){
+        if(e.target.classList.contains('img-editor-handle')) return;
+        e.preventDefault();
+        isDragging = true;
+        const t = e.touches[0];
+        dragStartX = t.clientX;
+        dragStartY = t.clientY;
+        origState = getImgState();
+    });
+
+    function onDragMove(clientX, clientY){
+        if(!isDragging) return;
+        const dx = clientX - dragStartX;
+        const dy = clientY - dragStartY;
+        setImgState({ x: origState.x + dx, y: origState.y + dy, w: origState.w, h: origState.h });
+    }
+
+    document.addEventListener('mousemove', function(e){ onDragMove(e.clientX, e.clientY); });
+    document.addEventListener('touchmove', function(e){ if(isDragging){ e.preventDefault(); onDragMove(e.touches[0].clientX, e.touches[0].clientY); } }, {passive:false});
+
+    function onDragEnd(){ isDragging = false; isResizing = false; }
+    document.addEventListener('mouseup', onDragEnd);
+    document.addEventListener('touchend', onDragEnd);
+
+    // --- 拖角调整大小 ---
+    let isResizing = false, resizeDir;
+
+    canvas.querySelectorAll('.img-editor-handle').forEach(handle => {
+        handle.addEventListener('mousedown', function(e){
+            e.preventDefault();
+            e.stopPropagation();
+            isResizing = true;
+            resizeDir = handle.dataset.dir;
+            dragStartX = e.clientX;
+            dragStartY = e.clientY;
+            origState = getImgState();
+        });
+        handle.addEventListener('touchstart', function(e){
+            e.preventDefault();
+            e.stopPropagation();
+            isResizing = true;
+            resizeDir = handle.dataset.dir;
+            const t = e.touches[0];
+            dragStartX = t.clientX;
+            dragStartY = t.clientY;
+            origState = getImgState();
+        });
+    });
+
+    document.addEventListener('mousemove', onResizeMove);
+    document.addEventListener('touchmove', function(e){
+        if(isResizing){ e.preventDefault(); onResizeMove(e.touches[0]); }
+    }, {passive:false});
+
+    function onResizeMove(e){
+        if(!isResizing) return;
+        const clientX = e.clientX || 0;
+        const clientY = e.clientY || 0;
+        const dx = clientX - dragStartX;
+        const dy = clientY - dragStartY;
+        let s = {...origState};
+
+        switch(resizeDir){
+            case 'br': s.w += dx; s.h += dy; break;
+            case 'bl': s.x += dx; s.w -= dx; s.h += dy; break;
+            case 'tr': s.y += dy; s.w += dx; s.h -= dy; break;
+            case 'tl': s.x += dx; s.y += dy; s.w -= dx; s.h -= dy; break;
+            case 'r': s.w += dx; break;
+            case 'l': s.x += dx; s.w -= dx; break;
+            case 'b': s.h += dy; break;
+            case 't': s.y += dy; s.h -= dy; break;
+        }
+        // 最小尺寸
+        if(s.w < 40){ if(resizeDir.includes('l')) s.x = origState.x + origState.w - 40; s.w = 40; }
+        if(s.h < 30){ if(resizeDir.includes('t')) s.y = origState.y + origState.h - 30; s.h = 30; }
+
+        setImgState(s);
+    }
+}
+
 
 function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
@@ -325,7 +494,7 @@ function renderProducts(main){
     html += `<button class="btn btn-primary" onclick="addProduct()"><i class="fas fa-plus"></i> 添加产品</button>`;
     html += `<div style="margin-top:16px"><button class="btn btn-success" onclick="saveProducts()"><i class="fas fa-save"></i> 保存产品</button></div></div>`;
     main.innerHTML = html;
-    siteData.products.forEach(p => { if(p.img) initResize('prod_'+p.id); });
+    siteData.products.forEach(p => { if(p.img) initImgEditor('prod_'+p.id); });
 }
 
 function addProduct(){
@@ -353,15 +522,20 @@ function saveProducts(){
     siteData.products.forEach((p,i)=>{
         p.id = document.getElementById('prod_id_'+i)?.value || p.id;
         p.icon = document.getElementById('prod_icon_'+i)?.value || p.icon;
-        const iu = document.getElementById('iu_prod_'+p.id);
-        if(iu){
-            if(iu.dataset.imgData) p.img = iu.dataset.imgData;
-            if(iu.dataset.imgRemoved) p.img = '';
+        // 读取图片数据
+        const parent = document.getElementById('ie_prod_'+p.id)?.parentElement;
+        if(parent){
+            if(parent.dataset.imgData) p.img = parent.dataset.imgData;
+            if(parent.dataset.imgRemoved) p.img = '';
         }
-        const iw = document.getElementById('iw_prod_'+p.id);
-        const ih = document.getElementById('ih_prod_'+p.id);
-        if(iw) p.imgWidth = parseInt(iw.value) || 0;
-        if(ih) p.imgHeight = parseInt(ih.value) || 0;
+        // 读取编辑器中的图片尺寸和位置
+        const imgEl = document.getElementById('ieimg_prod_'+p.id);
+        if(imgEl){
+            p.imgWidth = parseInt(imgEl.style.width) || 0;
+            p.imgHeight = parseInt(imgEl.style.height) || 0;
+            p.imgX = parseInt(imgEl.style.left) || 0;
+            p.imgY = parseInt(imgEl.style.top) || 0;
+        }
         LANGS.forEach(l=>{
             p[l].title = document.getElementById('prod_'+i+'_'+l+'_title')?.value || p[l].title;
             p[l].desc = document.getElementById('prod_'+i+'_'+l+'_desc')?.value || p[l].desc;
@@ -441,7 +615,7 @@ function renderCases(main){
     html += `<button class="btn btn-primary" onclick="addCase()"><i class="fas fa-plus"></i> 添加案例</button>`;
     html += `<div style="margin-top:16px"><button class="btn btn-success" onclick="saveCases()"><i class="fas fa-save"></i> 保存案例</button></div></div>`;
     main.innerHTML = html;
-    siteData.cases.forEach(c => { if(c.img) initResize('case_'+c.id); });
+    siteData.cases.forEach(c => { if(c.img) initImgEditor('case_'+c.id); });
 }
 
 function addCase(){
@@ -465,15 +639,18 @@ function removeCase(i){
 function saveCases(){
     siteData.cases.forEach((c,i)=>{
         c.tag = document.getElementById('case_tag_'+i)?.value || c.tag;
-        const iu = document.getElementById('iu_case_'+c.id);
-        if(iu){
-            if(iu.dataset.imgData) c.img = iu.dataset.imgData;
-            if(iu.dataset.imgRemoved) c.img = '';
+        const parent = document.getElementById('ie_case_'+c.id)?.parentElement;
+        if(parent){
+            if(parent.dataset.imgData) c.img = parent.dataset.imgData;
+            if(parent.dataset.imgRemoved) c.img = '';
         }
-        const iw = document.getElementById('iw_case_'+c.id);
-        const ih = document.getElementById('ih_case_'+c.id);
-        if(iw) c.imgWidth = parseInt(iw.value) || 0;
-        if(ih) c.imgHeight = parseInt(ih.value) || 0;
+        const imgEl = document.getElementById('ieimg_case_'+c.id);
+        if(imgEl){
+            c.imgWidth = parseInt(imgEl.style.width) || 0;
+            c.imgHeight = parseInt(imgEl.style.height) || 0;
+            c.imgX = parseInt(imgEl.style.left) || 0;
+            c.imgY = parseInt(imgEl.style.top) || 0;
+        }
         LANGS.forEach(l=>{
             c[l].title = document.getElementById('case_'+i+'_'+l+'_title')?.value || c[l].title;
             c[l].desc = document.getElementById('case_'+i+'_'+l+'_desc')?.value || c[l].desc;
