@@ -351,10 +351,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Update page title
         const titleMap = {
-            zh: '霓彩舞台设备 | Neecai - www.neecai.com',
-            en: 'Neecai Stage Effects - www.neecai.com',
-            es: 'Neecai Efectos Escénicos - www.neecai.com',
-            pt: 'Neecai Efeitos Cênicos - www.neecai.com'
+            zh: '霓彩舞台设备 | Neecai - www.neecai.net',
+            en: 'Neecai Stage Effects - www.neecai.net',
+            es: 'Neecai Efectos Escénicos - www.neecai.net',
+            pt: 'Neecai Efeitos Cênicos - www.neecai.net'
         };
         document.title = titleMap[lang];
     }
