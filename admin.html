@@ -205,7 +205,17 @@ const DEFAULT_DATA = {
 let siteData = {};
 function loadData(){
     const saved = localStorage.getItem('neecai_admin_data');
-    siteData = saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(DEFAULT_DATA));
+    const defaults = JSON.parse(JSON.stringify(DEFAULT_DATA));
+    if(saved){
+        siteData = JSON.parse(saved);
+        // 合并新字段：如果旧数据缺少新模块，用默认值补全
+        if(!siteData.advantages) siteData.advantages = defaults.advantages;
+        if(!siteData.testimonials) siteData.testimonials = defaults.testimonials;
+        if(!siteData.form) siteData.form = defaults.form;
+        if(!siteData.popup) siteData.popup = defaults.popup;
+    } else {
+        siteData = defaults;
+    }
 }
 function saveData(){
     localStorage.setItem('neecai_admin_data', JSON.stringify(siteData));
