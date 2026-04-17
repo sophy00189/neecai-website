@@ -581,22 +581,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const inquiryClose = document.getElementById('inquiryClose');
     const inquiryForm = document.getElementById('inquiryForm');
 
-    // 首次访问询盘弹窗：用 localStorage 控制，同一设备首次访问必弹，关闭后7天内不再弹
+    // 每次访问都弹出询盘弹窗
     function showInquiryPopup() {
-        const dismissed = localStorage.getItem('inquiry_dismissed');
-        const now = Date.now();
-        // 如果从未关闭过，或者距上次关闭超过7天，则弹出
-        if ((!dismissed || now - parseInt(dismissed) > 7 * 24 * 60 * 60 * 1000) && inquiryOverlay) {
+        if (inquiryOverlay) {
             setTimeout(() => {
                 inquiryOverlay.classList.add('active');
-            }, 1000); // 页面加载1秒后弹出
+            }, 1000);
         }
     }
 
     function closeInquiryPopup() {
         if (inquiryOverlay) {
             inquiryOverlay.classList.remove('active');
-            localStorage.setItem('inquiry_dismissed', Date.now().toString());
         }
     }
 
