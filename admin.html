@@ -101,8 +101,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC
         <div class="nav-item" data-panel="solutions"><i class="fas fa-puzzle-piece"></i> 解决方案</div>
         <div class="nav-item" data-panel="cases"><i class="fas fa-images"></i> 经典案例</div>
         <div class="nav-item" data-panel="hero"><i class="fas fa-home"></i> 首页区域</div>
-        <div class="nav-item" data-panel="about"><i class="fas fa-building"></i> 公司信息</div>
+        <div class="nav-item" data-panel="about"><i class="fas fa-building"></i> 关于我们</div>
+        <div class="nav-item" data-panel="advantages"><i class="fas fa-award"></i> 核心优势</div>
+        <div class="nav-item" data-panel="testimonials"><i class="fas fa-comments"></i> 客户评价</div>
         <div class="nav-item" data-panel="contact"><i class="fas fa-phone"></i> 联系方式</div>
+        <div class="nav-item" data-panel="form"><i class="fas fa-envelope"></i> 咨询表单</div>
         <div class="nav-item" data-panel="settings"><i class="fas fa-cog"></i> 发布设置</div>
     </div>
     <div class="main" id="mainContent">
@@ -166,6 +169,31 @@ const DEFAULT_DATA = {
         address_es:'8ª Planta, Edificio A, Parque Cultural Creativo, Chaoyang, Beijing',
         address_pt:'8º Andar, Edifício A, Parque Cultural Criativo, Chaoyang, Pequim'
     },
+    advantages: [
+        {id:'r1',icon:'fas fa-microchip',zh:{title:'自主研发',desc:'36项核心专利技术，持续创新引领行业标准'},en:{title:'Self-Developed',desc:'36 core patent technologies, continuously innovating and leading industry standards'},es:{title:'Desarrollo Propio',desc:'36 patentes core, innovación continua'},pt:{title:'Desenvolvimento Próprio',desc:'36 patentes core, inovação contínua'}},
+        {id:'r2',icon:'fas fa-shield-alt',zh:{title:'安全可靠',desc:'多重安全防护机制，CE/FCC/ROHS国际认证'},en:{title:'Safe & Reliable',desc:'Multiple safety mechanisms, CE/FCC/ROHS international certifications'},es:{title:'Seguro y Confiable',desc:'Múltiples mecanismos de seguridad, certificaciones CE/FCC/ROHS'},pt:{title:'Seguro e Confiável',desc:'Múltiplos mecanismos de segurança, certificações CE/FCC/ROHS'}},
+        {id:'r3',icon:'fas fa-globe',zh:{title:'全球服务',desc:'覆盖50+国家与地区，6大海外仓储中心'},en:{title:'Global Service',desc:'Covering 50+ countries and regions, 6 overseas warehouse centers'},es:{title:'Servicio Global',desc:'Cubriendo 50+ países, 6 centros de almacén'},pt:{title:'Serviço Global',desc:'Cobrindo 50+ países, 6 centros de armazém'}},
+        {id:'r4',icon:'fas fa-cogs',zh:{title:'定制能力',desc:'从单台设备到整场编排，深度定制你的一切需求'},en:{title:'Customization',desc:'From single equipment to full-show choreography, deep customization for all needs'},es:{title:'Personalización',desc:'Desde un solo equipo hasta coreografía completa'},pt:{title:'Personalização',desc:'De um único equipamento à coreografia completa'}},
+        {id:'r5',icon:'fas fa-headset',zh:{title:'7×24支持',desc:'专业技术团队全天候在线，随时响应紧急需求'},en:{title:'24/7 Support',desc:'Professional tech team online around the clock, ready for urgent needs'},es:{title:'Soporte 24/7',desc:'Equipo técnico profesional en línea'},pt:{title:'Suporte 24/7',desc:'Equipe técnica profissional online'}},
+        {id:'r6',icon:'fas fa-industry',zh:{title:'源头工厂',desc:'20000㎡自有生产基地，品质与交付双重保障'},en:{title:'Direct Factory',desc:'20,000㎡ own production base, quality and delivery guaranteed'},es:{title:'Fábrica Directa',desc:'20.000㎡ de base de producción propia'},pt:{title:'Fábrica Direta',desc:'20.000㎡ de base de produção própria'}}
+    ],
+    testimonials: [
+        {id:'t1',zh:{text:'"霓彩的特效设备质量非常稳定，在12城巡演中从未出过任何故障。他们的技术支持团队也是我们合作过的最专业的。"',name:'张总监',role:'某知名艺人巡演制作总监'},en:{text:'"Neecai\'s effects equipment is extremely reliable — zero failures across a 12-city tour. Their tech support team is the most professional we\'ve worked with."',name:'Director Zhang',role:'Tour Production Director'},es:{text:'"El equipo de efectos de Neecai es extremadamente confiable."',name:'Director Zhang',role:'Director de Producción de Gira'},pt:{text:'"O equipamento de efeitos da Neecai é extremamente confiável."',name:'Diretor Zhang',role:'Diretor de Produção de Turnê'}},
+        {id:'t2',zh:{text:'"我们在欧洲的音乐节用了他们的火花机和烟雾机，效果震撼全场。配送速度也很快，从波兰仓3天就到了。"',name:'',role:'西班牙活动制作公司CEO'},en:{text:'"We used their spark and smoke machines at our European festival — stunning effects. Delivery was fast too, 3 days from the Poland warehouse."',name:'',role:'Spanish Event Production CEO'},es:{text:'"Usamos sus máquinas en nuestro festival europeo — efectos impresionantes."',name:'',role:'CEO de Producción de Eventos'},pt:{text:'"Usamos suas máquinas em nosso festival europeu — efeitos impressionantes."',name:'',role:'CEO de Produção de Eventos'}},
+        {id:'t3',zh:{text:'"冷火花走道在我们婚礼上效果太惊艳了！安全无烟，宾客们都赞不绝口。强烈推荐给所有新人！"',name:'李女士',role:'婚礼策划师'},en:{text:'"The cold spark walkway at our wedding was absolutely stunning! Safe and smokeless, all guests were amazed. Highly recommend!"',name:'Ms. Li',role:'Wedding Planner'},es:{text:'"El pasillo de chispas frías en nuestra boda fue absolutamente impresionante."',name:'Sra. Li',role:'Planificadora de Bodas'},pt:{text:'"O corredor de faíscas frias no nosso casamento foi absolutamente impressionante."',name:'Sra. Li',role:'Planejadora de Casamentos'}}
+    ],
+    form: {
+        zh:{title:'获取报价',subtitle:'填写以下信息，我们将在24小时内回复您',name:'姓名 *',name_ph:'请输入您的姓名',company:'公司',company_ph:'请输入公司名称',email:'邮箱 *',email_ph:'请输入邮箱地址',phone:'电话',phone_ph:'请输入联系电话',product:'感兴趣的产品',select:'请选择产品类型',msg:'需求描述 *',msg_ph:'请描述您的具体需求，如活动类型、场地规模、期望效果等',submit:'提交咨询'},
+        en:{title:'Get a Quote',subtitle:'Fill in the form below and we\'ll respond within 24 hours',name:'Name *',name_ph:'Enter your name',company:'Company',company_ph:'Enter company name',email:'Email *',email_ph:'Enter your email',phone:'Phone',phone_ph:'Enter your phone number',product:'Product Interest',select:'Select product type',msg:'Requirements *',msg_ph:'Describe your needs — event type, venue size, desired effects, etc.',submit:'Submit Inquiry'},
+        es:{title:'Obtener Cotización',subtitle:'Complete el formulario y le responderemos en 24 horas',name:'Nombre *',name_ph:'Ingrese su nombre',company:'Empresa',company_ph:'Ingrese nombre de empresa',email:'Correo *',email_ph:'Ingrese su correo',phone:'Teléfono',phone_ph:'Ingrese su teléfono',product:'Producto de Interés',select:'Seleccione tipo de producto',msg:'Requisitos *',msg_ph:'Describa sus necesidades — tipo de evento, tamaño del lugar, etc.',submit:'Enviar Consulta'},
+        pt:{title:'Obter Orçamento',subtitle:'Preencha o formulário e responderemos em 24 horas',name:'Nome *',name_ph:'Digite seu nome',company:'Empresa',company_ph:'Digite o nome da empresa',email:'E-mail *',email_ph:'Digite seu e-mail',phone:'Telefone',phone_ph:'Digite seu telefone',product:'Produto de Interesse',select:'Selecione o tipo de produto',msg:'Requisitos *',msg_ph:'Descreva suas necessidades — tipo de evento, tamanho do local, etc.',submit:'Enviar Consulta'}
+    },
+    popup: {
+        zh:{title:'获取专属报价',subtitle:'15年舞台特效经验，24小时内回复您的需求',name_ph:'您的姓名 *',email_ph:'邮箱地址 *',phone_ph:'联系电话',select:'感兴趣的产品',msg_ph:'请简述您的需求，如活动类型、场地大小、预算范围等',submit:'立即获取报价',trust1:'CE/FCC认证',trust2:'50+国家客户',trust3:'24h回复'},
+        en:{title:'Get Your Custom Quote',subtitle:'15 years of stage effects expertise, response within 24 hours',name_ph:'Your name *',email_ph:'Email address *',phone_ph:'Phone number',select:'Product interest',msg_ph:'Briefly describe your needs — event type, venue size, budget, etc.',submit:'Get Your Quote Now',trust1:'CE/FCC Certified',trust2:'50+ Countries',trust3:'24h Response'},
+        es:{title:'Obtenga su Cotización',subtitle:'15 años de experiencia, respuesta en 24 horas',name_ph:'Su nombre *',email_ph:'Correo electrónico *',phone_ph:'Teléfono',select:'Producto de interés',msg_ph:'Describa sus necesidades — tipo de evento, presupuesto, etc.',submit:'Obtener Cotización Ahora',trust1:'Certificado CE/FCC',trust2:'50+ Países',trust3:'Respuesta 24h'},
+        pt:{title:'Obtenha seu Orçamento',subtitle:'15 anos de experiência, resposta em 24 horas',name_ph:'Seu nome *',email_ph:'Endereço de e-mail *',phone_ph:'Telefone',select:'Produto de interesse',msg_ph:'Descreva suas necessidades — tipo de evento, orçamento, etc.',submit:'Obter Orçamento Agora',trust1:'Certificado CE/FCC',trust2:'50+ Países',trust3:'Resposta 24h'}
+    },
     settings: {
         githubToken:'',
         repo:'sophy00189/neecai-website',
@@ -196,7 +224,7 @@ document.querySelectorAll('.nav-item').forEach(item=>{
 
 function renderPanel(name){
     const main = document.getElementById('mainContent');
-    const renderers = {products:renderProducts, solutions:renderSolutions, cases:renderCases, hero:renderHero, about:renderAbout, contact:renderContact, settings:renderSettings};
+    const renderers = {products:renderProducts, solutions:renderSolutions, cases:renderCases, hero:renderHero, about:renderAbout, advantages:renderAdvantages, testimonials:renderTestimonials, contact:renderContact, form:renderForm, settings:renderSettings};
     if(renderers[name]) renderers[name](main);
 }
 
@@ -758,6 +786,176 @@ function saveContact(){
 }
 
 // ========== 发布设置 ==========
+// ========== 核心优势 ==========
+function renderAdvantages(main){
+    let html = `<div class="panel active"><div class="panel-title"><i class="fas fa-award"></i> 核心优势</div>`;
+    siteData.advantages.forEach((a,i)=>{
+        html += `<div class="card"><div class="card-header" onclick="toggleCard(this)"><h3><i class="fas fa-chevron-down"></i> ${a.zh.title}</h3><span class="card-toggle">展开/收起</span></div><div class="card-body">`;
+        html += inputGroup('图标 Class','adv_icon_'+i, a.icon, null);
+        html += langTabs('adv_'+i);
+        LANGS.forEach(l=>{
+            html += `<div data-lang-field="${l}" style="display:${l==='zh'?'':'none'}">`;
+            html += inputGroup('优势标题','adv_'+i+'_'+l+'_title', a[l].title, l);
+            html += inputGroup('优势描述','adv_'+i+'_'+l+'_desc', a[l].desc, l, true);
+            html += `</div>`;
+        });
+        html += `<div style="text-align:right"><button class="btn btn-danger" onclick="removeAdvantage(${i})"><i class="fas fa-trash"></i> 删除</button></div>`;
+        html += `</div></div>`;
+    });
+    html += `<button class="btn btn-primary" onclick="addAdvantage()"><i class="fas fa-plus"></i> 添加优势</button>`;
+    html += `<div style="margin-top:16px"><button class="btn btn-success" onclick="saveAdvantages()"><i class="fas fa-save"></i> 保存优势</button></div></div>`;
+    main.innerHTML = html;
+}
+
+function addAdvantage(){
+    siteData.advantages.push({id:'r'+Date.now(),icon:'fas fa-star',
+        zh:{title:'新优势',desc:'优势描述'},en:{title:'New Advantage',desc:'Advantage description'},
+        es:{title:'Nueva Ventaja',desc:'Descripción'},pt:{title:'Nova Vantagem',desc:'Descrição'}
+    });
+    saveData(); renderAdvantages(document.getElementById('mainContent'));
+    showToast('已添加新优势','success');
+}
+
+function removeAdvantage(i){
+    if(!confirm('确定删除 "'+siteData.advantages[i].zh.title+'" ?')) return;
+    siteData.advantages.splice(i,1); saveData();
+    renderAdvantages(document.getElementById('mainContent'));
+}
+
+function saveAdvantages(){
+    siteData.advantages.forEach((a,i)=>{
+        a.icon = document.getElementById('adv_icon_'+i)?.value || a.icon;
+        LANGS.forEach(l=>{
+            a[l].title = document.getElementById('adv_'+i+'_'+l+'_title')?.value || a[l].title;
+            a[l].desc = document.getElementById('adv_'+i+'_'+l+'_desc')?.value || a[l].desc;
+        });
+    });
+    saveData(); showToast('优势数据已保存','success');
+}
+
+// ========== 客户评价 ==========
+function renderTestimonials(main){
+    let html = `<div class="panel active"><div class="panel-title"><i class="fas fa-comments"></i> 客户评价</div>`;
+    siteData.testimonials.forEach((t,i)=>{
+        html += `<div class="card"><div class="card-header" onclick="toggleCard(this)"><h3><i class="fas fa-chevron-down"></i> 评价 ${i+1}</h3><span class="card-toggle">展开/收起</span></div><div class="card-body">`;
+        html += langTabs('testi_'+i);
+        LANGS.forEach(l=>{
+            html += `<div data-lang-field="${l}" style="display:${l==='zh'?'':'none'}">`;
+            html += inputGroup('评价内容','testi_'+i+'_'+l+'_text', t[l].text, l, true);
+            html += `<div class="form-row">`;
+            html += inputGroup('评价人姓名','testi_'+i+'_'+l+'_name', t[l].name, l);
+            html += inputGroup('评价人职位','testi_'+i+'_'+l+'_role', t[l].role, l);
+            html += `</div></div>`;
+        });
+        html += `<div style="text-align:right"><button class="btn btn-danger" onclick="removeTestimonial(${i})"><i class="fas fa-trash"></i> 删除</button></div>`;
+        html += `</div></div>`;
+    });
+    html += `<button class="btn btn-primary" onclick="addTestimonial()"><i class="fas fa-plus"></i> 添加评价</button>`;
+    html += `<div style="margin-top:16px"><button class="btn btn-success" onclick="saveTestimonials()"><i class="fas fa-save"></i> 保存评价</button></div></div>`;
+    main.innerHTML = html;
+}
+
+function addTestimonial(){
+    siteData.testimonials.push({id:'t'+Date.now(),
+        zh:{text:'"新的客户评价"',name:'',role:''},en:{text:'"New testimonial"',name:'',role:''},
+        es:{text:'"Nuevo testimonio"',name:'',role:''},pt:{text:'"Novo depoimento"',name:'',role:''}
+    });
+    saveData(); renderTestimonials(document.getElementById('mainContent'));
+    showToast('已添加新评价','success');
+}
+
+function removeTestimonial(i){
+    if(!confirm('确定删除评价 '+(i+1)+' ?')) return;
+    siteData.testimonials.splice(i,1); saveData();
+    renderTestimonials(document.getElementById('mainContent'));
+}
+
+function saveTestimonials(){
+    siteData.testimonials.forEach((t,i)=>{
+        LANGS.forEach(l=>{
+            t[l].text = document.getElementById('testi_'+i+'_'+l+'_text')?.value || t[l].text;
+            t[l].name = document.getElementById('testi_'+i+'_'+l+'_name')?.value || t[l].name;
+            t[l].role = document.getElementById('testi_'+i+'_'+l+'_role')?.value || t[l].role;
+        });
+    });
+    saveData(); showToast('评价数据已保存','success');
+}
+
+// ========== 咨询表单 ==========
+function renderForm(main){
+    const f = siteData.form;
+    const p = siteData.popup;
+    let html = `<div class="panel active"><div class="panel-title"><i class="fas fa-envelope"></i> 咨询表单</div>`;
+    // 联系表单
+    html += `<div class="card"><div class="card-header"><h3><i class="fas fa-file-alt"></i> 页面联系表单</h3></div><div class="card-body">`;
+    html += langTabs('form');
+    LANGS.forEach(l=>{
+        html += `<div data-lang-field="${l}" style="display:${l==='zh'?'':'none'}">`;
+        html += inputGroup('表单标题','form_'+l+'_title', f[l].title, l);
+        html += inputGroup('表单副标题','form_'+l+'_subtitle', f[l].subtitle, l);
+        html += `<div class="form-row">`;
+        html += inputGroup('姓名标签','form_'+l+'_name', f[l].name, l);
+        html += inputGroup('姓名占位符','form_'+l+'_name_ph', f[l].name_ph, l);
+        html += `</div><div class="form-row">`;
+        html += inputGroup('公司标签','form_'+l+'_company', f[l].company, l);
+        html += inputGroup('公司占位符','form_'+l+'_company_ph', f[l].company_ph, l);
+        html += `</div><div class="form-row">`;
+        html += inputGroup('邮箱标签','form_'+l+'_email', f[l].email, l);
+        html += inputGroup('邮箱占位符','form_'+l+'_email_ph', f[l].email_ph, l);
+        html += `</div><div class="form-row">`;
+        html += inputGroup('电话标签','form_'+l+'_phone', f[l].phone, l);
+        html += inputGroup('电话占位符','form_'+l+'_phone_ph', f[l].phone_ph, l);
+        html += `</div><div class="form-row">`;
+        html += inputGroup('产品标签','form_'+l+'_product', f[l].product, l);
+        html += inputGroup('产品选择占位符','form_'+l+'_select', f[l].select, l);
+        html += `</div>`;
+        html += inputGroup('需求描述标签','form_'+l+'_msg', f[l].msg, l);
+        html += inputGroup('需求描述占位符','form_'+l+'_msg_ph', f[l].msg_ph, l, true);
+        html += inputGroup('提交按钮','form_'+l+'_submit', f[l].submit, l);
+        html += `</div>`;
+    });
+    html += `</div></div>`;
+    // 弹窗表单
+    html += `<div class="card"><div class="card-header"><h3><i class="fas fa-window-restore"></i> 弹窗询盘表单</h3></div><div class="card-body">`;
+    html += langTabs('popup');
+    LANGS.forEach(l=>{
+        html += `<div data-lang-field="${l}" style="display:${l==='zh'?'':'none'}">`;
+        html += inputGroup('弹窗标题','popup_'+l+'_title', p[l].title, l);
+        html += inputGroup('弹窗副标题','popup_'+l+'_subtitle', p[l].subtitle, l);
+        html += `<div class="form-row">`;
+        html += inputGroup('姓名占位符','popup_'+l+'_name_ph', p[l].name_ph, l);
+        html += inputGroup('邮箱占位符','popup_'+l+'_email_ph', p[l].email_ph, l);
+        html += `</div><div class="form-row">`;
+        html += inputGroup('电话占位符','popup_'+l+'_phone_ph', p[l].phone_ph, l);
+        html += inputGroup('产品选择占位符','popup_'+l+'_select', p[l].select, l);
+        html += `</div>`;
+        html += inputGroup('需求描述占位符','popup_'+l+'_msg_ph', p[l].msg_ph, l, true);
+        html += inputGroup('提交按钮','popup_'+l+'_submit', p[l].submit, l);
+        html += `<div class="form-row">`;
+        html += inputGroup('信任标识1','popup_'+l+'_trust1', p[l].trust1, l);
+        html += inputGroup('信任标识2','popup_'+l+'_trust2', p[l].trust2, l);
+        html += inputGroup('信任标识3','popup_'+l+'_trust3', p[l].trust3, l);
+        html += `</div></div>`;
+    });
+    html += `</div></div>`;
+    html += `<button class="btn btn-success" onclick="saveForm()"><i class="fas fa-save"></i> 保存表单</button></div>`;
+    main.innerHTML = html;
+}
+
+function saveForm(){
+    LANGS.forEach(l=>{
+        ['title','subtitle','name','name_ph','company','company_ph','email','email_ph','phone','phone_ph','product','select','msg','msg_ph','submit'].forEach(k=>{
+            const el = document.getElementById('form_'+l+'_'+k);
+            if(el) siteData.form[l][k] = el.value;
+        });
+        ['title','subtitle','name_ph','email_ph','phone_ph','select','msg_ph','submit','trust1','trust2','trust3'].forEach(k=>{
+            const el = document.getElementById('popup_'+l+'_'+k);
+            if(el) siteData.popup[l][k] = el.value;
+        });
+    });
+    saveData(); showToast('表单数据已保存','success');
+}
+
 function renderSettings(main){
     const s = siteData.settings;
     let html = `<div class="panel active"><div class="panel-title"><i class="fas fa-cog"></i> 发布设置</div>`;
