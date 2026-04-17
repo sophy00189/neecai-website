@@ -1648,10 +1648,9 @@ async function startPublish(){
         const branch = siteData.settings.branch;
         const headers = {'Authorization':'token '+token,'Accept':'application/vnd.github.v3+json'};
 
-        // 1. 生成新的 script.js
+        // 1. 生成新的 script.js（不依赖图片路径）
         addLog('正在生成网站文件...','info');
         const newJS = generateScriptJS();
-        const newHTML = await generateIndexHTML();
 
         // 2. 获取当前文件的 SHA
         addLog('获取 GitHub 仓库信息...','info');
@@ -1700,7 +1699,11 @@ async function startPublish(){
         }
         if(imgCount) saveData();
 
-        // 4. 推送 script.js
+        // 4. 生成 index.html（在图片上传后，这样路径已是 /images/xxx）
+        addLog('生成 index.html...','info');
+        const newHTML = await generateIndexHTML();
+
+        // 5. 推送 script.js
         addLog('推送 script.js...','info');
         const jsSHA = await getFileSHA('script.js');
         const jsBody = {message:'更新网站内容 (admin)', content: btoa(unescape(encodeURIComponent(newJS))), branch};
@@ -1709,7 +1712,7 @@ async function startPublish(){
         if(jsR.ok) addLog('✓ script.js 推送成功','ok');
         else{const e=await jsR.json();addLog('✗ script.js 推送失败: '+e.message,'err');throw new Error('script.js push failed');}
 
-        // 5. 推送 index.html
+        // 6. 推送 index.html
         addLog('推送 index.html...','info');
         const htmlSHA = await getFileSHA('index.html');
         const htmlBody = {message:'更新网站页面 (admin)', content: btoa(unescape(encodeURIComponent(newHTML))), branch};
@@ -1941,9 +1944,15 @@ async function generateIndexHTML(){
     html = html.replace(/href="tel:[^"]*"/, `href="tel:${siteData.contact.phone}"`);
     html = html.replace(/href="mailto:[^"]*"/, `href="mailto:${siteData.contact.email}"`);
 
-    // Update navbar logo icon
+    // Update navbar logo
     const nb = siteData.navbar;
-    if(nb.logo_icon){
+    // Logo 图片优先（替换整个 logo-icon 内容为 img）
+    if(nb.logo_img && !nb.logo_img.startsWith('data:')){
+        html = html.replace(/<span class="logo-icon"><i class="[^"]*"><\/i><\/span>/g,
+            `<span class="logo-icon"><img src="${nb.logo_img}" alt="Logo"></span>`);
+    }
+    // 如果没有图片，则更新图标 class
+    else if(nb.logo_icon){
         html = html.replace(/<span class="logo-icon"><i class="fas[^"]*"><\/i><\/span>/g,
             `<span class="logo-icon"><i class="${nb.logo_icon}"></i></span>`);
     }
@@ -1951,11 +1960,6 @@ async function generateIndexHTML(){
     if(nb.logo_text){
         html = html.replace(/<span class="logo-text">Neecai/g,
             `<span class="logo-text">${nb.logo_text}`);
-    }
-    // Update navbar logo image (replace icon with img if uploaded)
-    if(nb.logo_img){
-        html = html.replace(/<span class="logo-icon"><i class="[^"]*"><\/i><\/span>/g,
-            `<span class="logo-icon"><img src="${nb.logo_img}" alt="Logo" style="height:32px;width:auto"></span>`);
     }
 
     // Update version for cache busting

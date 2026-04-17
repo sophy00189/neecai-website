@@ -126,6 +126,14 @@ img { max-width: 100%; display: block; }
     font-size: 1.2rem;
     color: #fff;
     box-shadow: 0 0 20px rgba(255, 107, 53, 0.4);
+    overflow: hidden;
+    flex-shrink: 0;
+}
+.logo-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 10px;
 }
 
 .logo-accent {
