@@ -255,6 +255,39 @@ function switchLang(prefix, lang){
         const dot = activeTab.querySelector('.trans-dot');
         if(dot) dot.remove();
     }
+    // 切换到非中文语言时，给自动翻译的输入框添加视觉提示
+    if(lang !== 'zh'){
+        const cardBody = tabs.closest('.card-body') || tabs.parentElement;
+        cardBody.querySelectorAll(`[data-lang-field="${lang}"] input, [data-lang-field="${lang}"] textarea`).forEach(el => {
+            if(el.dataset.autoTrans){
+                // 显示蓝色边框提示（切换回来时重新显示）
+                el.style.borderColor = '#38bdf8';
+                el.style.boxShadow = '0 0 0 1px rgba(56,189,248,0.3)';
+                let transTag = el.parentElement.querySelector('.trans-tag');
+                if(!transTag){
+                    transTag = document.createElement('span');
+                    transTag.className = 'trans-tag';
+                    transTag.style.cssText = 'font-size:10px;color:#38bdf8;margin-top:1px;display:flex;align-items:center;gap:3px';
+                    el.parentElement.appendChild(transTag);
+                }
+                transTag.innerHTML = '<i class="fas fa-language"></i> 自动翻译（点击编辑覆盖）';
+                // 确保有 focus 事件处理
+                if(!el.dataset.hasAutoTransFocus){
+                    el.dataset.hasAutoTransFocus = 'true';
+                    el.addEventListener('focus', function clearHint(){
+                        this.style.borderColor = '';
+                        this.style.boxShadow = '';
+                        delete this.dataset.autoTrans;
+                        delete this.dataset.hasAutoTransFocus;
+                        this.dataset.userEdited = 'true';
+                        const tag = this.parentElement.querySelector('.trans-tag');
+                        if(tag) tag.remove();
+                        this.removeEventListener('focus', clearHint);
+                    });
+                }
+            }
+        });
+    }
 }
 
 function inputGroup(label, id, value, lang, multiline){
@@ -304,8 +337,8 @@ function autoTranslate(zhId, zhText){
         
         const targetEl = document.getElementById(targetId);
         if(!targetEl) return;
-        // 如果用户已手动编辑过（有内容且非自动翻译），跳过
-        if(targetEl.value && targetEl.value.trim() && !targetEl.dataset.autoTrans) return;
+        // 只有用户手动 focus 编辑过的字段才跳过（dataset.userEdited 标记）
+        if(targetEl.dataset.userEdited) return;
         
         // 移除该目标之前可能排队的翻译
         translateQueue = translateQueue.filter(item => item.targetId !== targetId);
@@ -381,15 +414,21 @@ async function processTranslateQueue(){
                     targetEl.parentElement.appendChild(transTag);
                 }
                 transTag.innerHTML = '<i class="fas fa-language"></i> 自动翻译（点击编辑覆盖）';
-                // 用户手动编辑后恢复样式
-                targetEl.addEventListener('focus', function clearHint(){
-                    this.style.borderColor = '';
-                    this.style.boxShadow = '';
-                    delete this.dataset.autoTrans;
-                    const tag = this.parentElement.querySelector('.trans-tag');
-                    if(tag) tag.remove();
-                    this.removeEventListener('focus', clearHint);
-                });
+                // 用户手动编辑后恢复样式（避免重复绑定）
+                if(!targetEl.dataset.hasAutoTransFocus){
+                    targetEl.dataset.hasAutoTransFocus = 'true';
+                    targetEl.addEventListener('focus', function clearHint(){
+                        this.style.borderColor = '';
+                        this.style.boxShadow = '';
+                        delete this.dataset.autoTrans;
+                        delete this.dataset.hasAutoTransFocus;
+                        // 标记为用户手动编辑，后续中文修改不再覆盖
+                        this.dataset.userEdited = 'true';
+                        const tag = this.parentElement.querySelector('.trans-tag');
+                        if(tag) tag.remove();
+                        this.removeEventListener('focus', clearHint);
+                    });
+                }
                 // 在对应语言 tab 按钮上添加翻译标记小圆点
                 markLangTabTranslated(item.targetId, item.to);
             }
