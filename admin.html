@@ -44,14 +44,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC
 .lang-tabs{display:flex;gap:4px;margin-bottom:12px;background:var(--bg);border-radius:8px;padding:4px}
 .lang-tab{padding:6px 16px;border-radius:6px;border:none;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;background:transparent;color:var(--text3);transition:all .2s}
 .lang-tab.active{background:var(--accent);color:#fff}
-.img-upload{border:2px dashed var(--border);border-radius:var(--radius);padding:24px;text-align:center;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.img-upload{border:2px dashed var(--border);border-radius:var(--radius);padding:24px;text-align:center;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;min-height:120px;display:flex;align-items:center;justify-content:center}
 .img-upload:hover{border-color:var(--accent);background:rgba(255,107,53,.04)}
 .img-upload input{display:none}
-.img-upload i{font-size:28px;color:var(--text3);margin-bottom:8px}
+.img-upload i.fa-cloud-upload-alt{font-size:28px;color:var(--text3);margin-bottom:8px}
 .img-upload p{font-size:13px;color:var(--text3)}
-.img-preview{max-width:100%;max-height:160px;border-radius:8px;margin-top:8px}
-.img-preview-wrap{position:relative;display:inline-block}
-.img-remove{position:absolute;top:4px;right:4px;background:var(--red);color:#fff;border:none;border-radius:50%;width:24px;height:24px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center}
+.img-upload .img-preview{max-width:100%;max-height:200px;border-radius:8px;display:block;margin:0 auto}
+/* 可拖拽调整大小的图片容器 */
+.img-resizable{position:relative;display:inline-block;border:2px solid var(--accent);border-radius:8px;overflow:visible;margin:8px auto;cursor:default}
+.img-resizable img{display:block;width:100%;height:100%;object-fit:cover;border-radius:6px;pointer-events:none}
+.img-resize-handle{position:absolute;width:14px;height:14px;background:var(--accent);border:2px solid #fff;border-radius:3px;cursor:nwse-resize;z-index:10;bottom:-2px;right:-2px}
+.img-resize-handle::after{content:'';position:absolute;bottom:2px;right:2px;width:6px;height:6px;border-right:2px solid #fff;border-bottom:2px solid #fff}
+.img-size-label{position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;font-size:11px;padding:2px 8px;border-radius:4px;white-space:nowrap;pointer-events:none}
+.img-toolbar{display:flex;gap:6px;margin-top:6px;justify-content:center}
 .token-input{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:14px;width:100%;font-family:monospace;outline:none}
 .token-input:focus{border-color:var(--accent)}
 .status-bar{position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;justify-content:space-between;font-size:13px;z-index:100}
@@ -320,6 +325,7 @@ function renderProducts(main){
     html += `<button class="btn btn-primary" onclick="addProduct()"><i class="fas fa-plus"></i> 添加产品</button>`;
     html += `<div style="margin-top:16px"><button class="btn btn-success" onclick="saveProducts()"><i class="fas fa-save"></i> 保存产品</button></div></div>`;
     main.innerHTML = html;
+    siteData.products.forEach(p => { if(p.img) initResize('prod_'+p.id); });
 }
 
 function addProduct(){
@@ -435,6 +441,7 @@ function renderCases(main){
     html += `<button class="btn btn-primary" onclick="addCase()"><i class="fas fa-plus"></i> 添加案例</button>`;
     html += `<div style="margin-top:16px"><button class="btn btn-success" onclick="saveCases()"><i class="fas fa-save"></i> 保存案例</button></div></div>`;
     main.innerHTML = html;
+    siteData.cases.forEach(c => { if(c.img) initResize('case_'+c.id); });
 }
 
 function addCase(){
