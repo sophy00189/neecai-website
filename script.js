@@ -576,6 +576,18 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // ========== 产品图片加载 ==========
+    document.querySelectorAll('.product-img').forEach(img => {
+        img.addEventListener('load', function() {
+            if(this.src && this.src !== window.location.href) {
+                this.style.display = 'block';
+            }
+        });
+        img.addEventListener('error', function() {
+            this.style.display = 'none';
+        });
+    });
+
     // ========== 首次访问询盘弹窗 ==========
     const inquiryOverlay = document.getElementById('inquiryOverlay');
     const inquiryClose = document.getElementById('inquiryClose');

@@ -2004,6 +2004,26 @@ img { max-width: 100%; display: block; }
     }
 }
 
+/* --- 产品图片 --- */
+.product-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 12px 12px 0 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.product-visual:has(.product-img[src]:not([src=""])) {
+    position: relative;
+    min-height: 180px;
+}
+
+.product-visual:has(.product-img[src]:not([src=""])) .product-icon-wrap {
+    display: none;
+}
+
 /* --- 首次访问询盘弹窗 --- */
 .inquiry-overlay {
     position: fixed;
