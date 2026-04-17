@@ -50,22 +50,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC
 .img-upload i.fa-cloud-upload-alt{font-size:28px;color:var(--text3);margin-bottom:8px}
 .img-upload p{font-size:13px;color:var(--text3)}
 /* 图片编辑器 */
-.img-editor{background:#111827;border:2px solid var(--accent);border-radius:12px;overflow:hidden;margin:8px 0}
-.img-editor-header{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:rgba(255,107,53,.1);border-bottom:1px solid rgba(255,107,53,.2);font-size:12px;color:var(--accent2)}
-.img-editor-info{display:flex;align-items:center;gap:12px}
-.img-editor-canvas{position:relative;width:100%;height:280px;background:repeating-conic-gradient(#1e293b 0% 25%,#0f172a 0% 50%) 50%/16px 16px;overflow:hidden;cursor:grab}
+.img-editor{border:2px solid var(--accent);border-radius:12px;overflow:hidden;margin:8px 0;position:relative}
+.img-editor-canvas{position:relative;width:100%;height:220px;background:repeating-conic-gradient(#1e293b 0% 25%,#0f172a 0% 50%) 50%/16px 16px;overflow:hidden;cursor:grab}
 .img-editor-canvas:active{cursor:grabbing}
 .img-editor-canvas img{position:absolute;user-select:none;-webkit-user-drag:none}
+/* 顶部透明工具栏 */
+.img-editor-header{position:absolute;top:0;left:0;right:0;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:linear-gradient(180deg,rgba(0,0,0,.65) 0%,rgba(0,0,0,.25) 70%,transparent 100%);font-size:11px;color:rgba(255,255,255,.85);pointer-events:none;transition:opacity .3s}
+.img-editor:hover .img-editor-header{opacity:1}
+.img-editor-header .img-editor-info{pointer-events:auto;display:flex;align-items:center;gap:8px}
+.img-editor-header .img-editor-info i{color:var(--accent2);font-size:11px}
 /* 8个调整手柄 */
-.img-editor-handle{position:absolute;width:12px;height:12px;background:#fff;border:2px solid var(--accent);z-index:10;border-radius:2px}
-.img-editor-handle.h-tl{top:-6px;left:-6px;cursor:nwse-resize}
-.img-editor-handle.h-tr{top:-6px;right:-6px;cursor:nesw-resize}
-.img-editor-handle.h-bl{bottom:-6px;left:-6px;cursor:nesw-resize}
-.img-editor-handle.h-br{bottom:-6px;right:-6px;cursor:nwse-resize}
-.img-editor-handle.h-t{top:-6px;left:50%;transform:translateX(-50%);cursor:ns-resize}
-.img-editor-handle.h-b{bottom:-6px;left:50%;transform:translateX(-50%);cursor:ns-resize}
-.img-editor-handle.h-l{top:50%;left:-6px;transform:translateY(-50%);cursor:ew-resize}
-.img-editor-handle.h-r{top:50%;right:-6px;transform:translateY(-50%);cursor:ew-resize}
+.img-editor-handle{position:absolute;width:14px;height:14px;background:rgba(255,255,255,.9);border:2px solid var(--accent);z-index:10;border-radius:3px;box-shadow:0 1px 4px rgba(0,0,0,.4)}
+.img-editor-handle.h-tl{top:-7px;left:-7px;cursor:nwse-resize}
+.img-editor-handle.h-tr{top:-7px;right:-7px;cursor:nesw-resize}
+.img-editor-handle.h-bl{bottom:-7px;left:-7px;cursor:nesw-resize}
+.img-editor-handle.h-br{bottom:-7px;right:-7px;cursor:nwse-resize}
+.img-editor-handle.h-t{top:-7px;left:50%;transform:translateX(-50%);cursor:ns-resize}
+.img-editor-handle.h-b{bottom:-7px;left:50%;transform:translateX(-50%);cursor:ns-resize}
+.img-editor-handle.h-l{top:50%;left:-7px;transform:translateY(-50%);cursor:ew-resize}
+.img-editor-handle.h-r{top:50%;right:-7px;transform:translateY(-50%);cursor:ew-resize}
 .img-toolbar{display:flex;gap:6px;margin-top:8px;justify-content:center}
 .token-input{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:14px;width:100%;font-family:monospace;outline:none}
 .token-input:focus{border-color:var(--accent)}
@@ -757,16 +760,20 @@ function imgUploader(id, currentImg, width, height){
     const hasImg = currentImg && currentImg !== '';
     if(hasImg){
         const src = currentImg;
-        const w = width || 240;
-        const h = height || 160;
+        const w = width || 0;
+        const h = height || 0;
+        // 如果有保存的尺寸则使用，否则用默认值让 initImgEditor 自适应
+        const imgStyle = w && h
+            ? `left:${Math.round((400-w)/2)}px;top:${Math.round((220-h)/2)}px;width:${w}px;height:${h}px`
+            : `left:0;top:0;width:100%;height:100%;object-fit:cover`;
         return `<div>
             <div class="img-editor" id="ie_${id}">
-                <div class="img-editor-header">
-                    <div class="img-editor-info"><i class="fas fa-arrows-alt"></i> 拖拽移动 &nbsp; <i class="fas fa-expand-arrows-alt"></i> 拖角调整大小</div>
-                    <div id="iedim_${id}" style="font-weight:700">${w} × ${h}</div>
-                </div>
                 <div class="img-editor-canvas" id="iec_${id}">
-                    <img src="${src}" id="ieimg_${id}" style="left:10px;top:10px;width:${w}px;height:${h}px">
+                    <img src="${src}" id="ieimg_${id}" style="${imgStyle}">
+                    <div class="img-editor-header">
+                        <div class="img-editor-info"><i class="fas fa-arrows-alt"></i> 拖拽移动 <i class="fas fa-expand-arrows-alt"></i> 拖角调整</div>
+                        <div id="iedim_${id}" style="font-weight:600">${w||'自适应'} × ${h||'自适应'}</div>
+                    </div>
                     <div class="img-editor-handle h-tl" data-dir="tl"></div>
                     <div class="img-editor-handle h-tr" data-dir="tr"></div>
                     <div class="img-editor-handle h-bl" data-dir="bl"></div>
@@ -800,36 +807,47 @@ function handleImgUpload(id, input){
             const wrapper = document.getElementById('iu_'+id) || document.getElementById('ie_'+id);
             const parent = wrapper ? wrapper.parentElement : null;
             if(!parent) return;
-            const w = 240, h = 160;
-            parent.innerHTML = `
-            <div class="img-editor" id="ie_${id}">
-                <div class="img-editor-header">
-                    <div class="img-editor-info"><i class="fas fa-arrows-alt"></i> 拖拽移动 &nbsp; <i class="fas fa-expand-arrows-alt"></i> 拖角调整大小</div>
-                    <div id="iedim_${id}" style="font-weight:700">${w} × ${h}</div>
+            // 先加载图片获取原始尺寸，计算填满编辑框的初始大小
+            const tmpImg = new Image();
+            tmpImg.onload = function(){
+                const canvasW = 400; // 大致编辑框宽度
+                const canvasH = 220; // 编辑框高度
+                const ratio = Math.max(canvasW / tmpImg.naturalWidth, canvasH / tmpImg.naturalHeight);
+                const w = Math.round(tmpImg.naturalWidth * ratio);
+                const h = Math.round(tmpImg.naturalHeight * ratio);
+                const left = Math.round((canvasW - w) / 2);
+                const top = Math.round((canvasH - h) / 2);
+                parent.innerHTML = `
+                <div class="img-editor" id="ie_${id}">
+                    <div class="img-editor-canvas" id="iec_${id}">
+                        <img src="${compressedData}" id="ieimg_${id}" style="left:${left}px;top:${top}px;width:${w}px;height:${h}px">
+                        <div class="img-editor-header">
+                            <div class="img-editor-info"><i class="fas fa-arrows-alt"></i> 拖拽移动 <i class="fas fa-expand-arrows-alt"></i> 拖角调整</div>
+                            <div id="iedim_${id}" style="font-weight:600">${w} × ${h}</div>
+                        </div>
+                        <div class="img-editor-handle h-tl" data-dir="tl"></div>
+                        <div class="img-editor-handle h-tr" data-dir="tr"></div>
+                        <div class="img-editor-handle h-bl" data-dir="bl"></div>
+                        <div class="img-editor-handle h-br" data-dir="br"></div>
+                        <div class="img-editor-handle h-t" data-dir="t"></div>
+                        <div class="img-editor-handle h-b" data-dir="b"></div>
+                        <div class="img-editor-handle h-l" data-dir="l"></div>
+                        <div class="img-editor-handle h-r" data-dir="r"></div>
+                    </div>
                 </div>
-                <div class="img-editor-canvas" id="iec_${id}">
-                    <img src="${compressedData}" id="ieimg_${id}" style="left:10px;top:10px;width:${w}px;height:${h}px">
-                    <div class="img-editor-handle h-tl" data-dir="tl"></div>
-                    <div class="img-editor-handle h-tr" data-dir="tr"></div>
-                    <div class="img-editor-handle h-bl" data-dir="bl"></div>
-                    <div class="img-editor-handle h-br" data-dir="br"></div>
-                    <div class="img-editor-handle h-t" data-dir="t"></div>
-                    <div class="img-editor-handle h-b" data-dir="b"></div>
-                    <div class="img-editor-handle h-l" data-dir="l"></div>
-                    <div class="img-editor-handle h-r" data-dir="r"></div>
+                <div class="img-toolbar">
+                    <button class="btn btn-secondary" style="font-size:12px;padding:4px 10px" onclick="document.getElementById('if_${id}').click()"><i class="fas fa-exchange-alt"></i> 更换图片</button>
+                    <button class="btn btn-danger" style="font-size:12px;padding:4px 10px" onclick="removeImg('${id}')"><i class="fas fa-trash"></i> 删除</button>
                 </div>
-            </div>
-            <div class="img-toolbar">
-                <button class="btn btn-secondary" style="font-size:12px;padding:4px 10px" onclick="document.getElementById('if_${id}').click()"><i class="fas fa-exchange-alt"></i> 更换图片</button>
-                <button class="btn btn-danger" style="font-size:12px;padding:4px 10px" onclick="removeImg('${id}')"><i class="fas fa-trash"></i> 删除</button>
-            </div>
-            <input type="file" id="if_${id}" accept="image/*" onchange="handleImgUpload('${id}',this)" style="display:none">`;
-            parent.dataset.imgData = compressedData;
-            parent.dataset.newImg = 'true';
-            initImgEditor(id);
-            const sizeKB = Math.round(compressedData.length * 3 / 4 / 1024);
-            showToast('图片已压缩至 ' + sizeKB + 'KB','success');
-            autoSave();
+                <input type="file" id="if_${id}" accept="image/*" onchange="handleImgUpload('${id}',this)" style="display:none">`;
+                parent.dataset.imgData = compressedData;
+                parent.dataset.newImg = 'true';
+                initImgEditor(id);
+                const sizeKB = Math.round(compressedData.length * 3 / 4 / 1024);
+                showToast('图片已压缩至 ' + sizeKB + 'KB','success');
+                autoSave();
+            };
+            tmpImg.src = compressedData;
         });
     };
     reader.readAsDataURL(file);
@@ -889,6 +907,30 @@ function initImgEditor(id){
     const img = document.getElementById('ieimg_'+id);
     const dimLabel = document.getElementById('iedim_'+id);
     if(!canvas || !img) return;
+
+    // 如果图片是自适应模式（无保存尺寸），等加载后计算填满编辑框
+    if(img.style.width === '100%' || (!parseInt(img.style.width) && !parseInt(img.style.height))){
+        function fitToCanvas(){
+            const cw = canvas.clientWidth;
+            const ch = canvas.clientHeight;
+            const iw = img.naturalWidth || cw;
+            const ih = img.naturalHeight || ch;
+            if(iw <= 0 || ih <= 0) return;
+            const ratio = Math.max(cw / iw, ch / ih);
+            const w = Math.round(iw * ratio);
+            const h = Math.round(ih * ratio);
+            const left = Math.round((cw - w) / 2);
+            const top = Math.round((ch - h) / 2);
+            img.style.width = w + 'px';
+            img.style.height = h + 'px';
+            img.style.left = left + 'px';
+            img.style.top = top + 'px';
+            img.style.objectFit = '';
+            if(dimLabel) dimLabel.textContent = w + ' × ' + h;
+        }
+        if(img.naturalWidth) fitToCanvas();
+        else img.addEventListener('load', fitToCanvas, {once:true});
+    }
 
     // 读取图片当前状态
     function getImgState(){
