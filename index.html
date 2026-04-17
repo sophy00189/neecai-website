@@ -561,6 +561,54 @@
 
     <button class="back-to-top" id="backToTop"><i class="fas fa-chevron-up"></i></button>
 
+    <!-- 首次访问询盘弹窗 -->
+    <div class="inquiry-overlay" id="inquiryOverlay">
+        <div class="inquiry-modal">
+            <button class="inquiry-close" id="inquiryClose"><i class="fas fa-times"></i></button>
+            <div class="inquiry-modal-header">
+                <div class="inquiry-icon"><i class="fas fa-bolt"></i></div>
+                <h2 data-i18n="popup_title">获取专属报价</h2>
+                <p data-i18n="popup_subtitle">15年舞台特效经验，24小时内回复您的需求</p>
+            </div>
+            <form class="inquiry-form" id="inquiryForm" action="https://formspree.io/f/xwvaolky" method="POST">
+                <input type="hidden" name="_source" value="popup">
+                <div class="inquiry-row">
+                    <div class="inquiry-group">
+                        <input type="text" name="name" data-i18n-placeholder="popup_name_ph" placeholder="您的姓名 *" required>
+                    </div>
+                    <div class="inquiry-group">
+                        <input type="email" name="email" data-i18n-placeholder="popup_email_ph" placeholder="邮箱地址 *" required>
+                    </div>
+                </div>
+                <div class="inquiry-row">
+                    <div class="inquiry-group">
+                        <input type="tel" name="phone" data-i18n-placeholder="popup_phone_ph" placeholder="联系电话">
+                    </div>
+                    <div class="inquiry-group">
+                        <select name="product">
+                            <option value="" data-i18n="popup_select">感兴趣的产品</option>
+                            <option data-i18n="p_fire_title">火焰特效</option>
+                            <option data-i18n="p_spark_title">火花特效</option>
+                            <option data-i18n="p_smoke_title">烟雾特效</option>
+                            <option data-i18n="p_confetti_title">彩花特效</option>
+                            <option data-i18n="p_light_title">智能灯光</option>
+                            <option data-i18n="p_holo_title">全息投影</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="inquiry-group full">
+                    <textarea name="message" rows="3" data-i18n-placeholder="popup_msg_ph" placeholder="请简述您的需求，如活动类型、场地大小、预算范围等"></textarea>
+                </div>
+                <button type="submit" class="inquiry-submit"><span data-i18n="popup_submit">立即获取报价</span> <i class="fas fa-arrow-right"></i></button>
+            </form>
+            <div class="inquiry-trust">
+                <span><i class="fas fa-check-circle"></i> <span data-i18n="popup_trust1">CE/FCC认证</span></span>
+                <span><i class="fas fa-check-circle"></i> <span data-i18n="popup_trust2">50+国家客户</span></span>
+                <span><i class="fas fa-check-circle"></i> <span data-i18n="popup_trust3">24h回复</span></span>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>

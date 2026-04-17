@@ -77,6 +77,10 @@ document.addEventListener('DOMContentLoaded', () => {
             form_product: '感兴趣的产品', form_select: '请选择产品类型', form_comprehensive: '综合方案',
             form_msg: '需求描述 *', form_msg_ph: '请描述您的具体需求，如活动类型、场地规模、期望效果等',
             form_submit: '提交咨询',
+            popup_title: '获取专属报价', popup_subtitle: '15年舞台特效经验，24小时内回复您的需求',
+            popup_name_ph: '您的姓名 *', popup_email_ph: '邮箱地址 *', popup_phone_ph: '联系电话',
+            popup_select: '感兴趣的产品', popup_msg_ph: '请简述您的需求，如活动类型、场地大小、预算范围等',
+            popup_submit: '立即获取报价', popup_trust1: 'CE/FCC认证', popup_trust2: '50+国家客户', popup_trust3: '24h回复',
             footer_desc: '专注舞台特效15年，用科技与艺术点亮每一场演出。',
             footer_products: '产品中心', footer_solutions: '解决方案', footer_about: '关于我们',
             footer_about_co: '公司介绍', footer_news: '新闻动态', footer_join: '加入我们', footer_partners: '合作伙伴',
@@ -153,6 +157,10 @@ document.addEventListener('DOMContentLoaded', () => {
             form_product: 'Product Interest', form_select: 'Select product type', form_comprehensive: 'Comprehensive Solution',
             form_msg: 'Requirements *', form_msg_ph: 'Describe your needs — event type, venue size, desired effects, etc.',
             form_submit: 'Submit Inquiry',
+            popup_title: 'Get Your Custom Quote', popup_subtitle: '15 years of stage effects expertise, response within 24 hours',
+            popup_name_ph: 'Your name *', popup_email_ph: 'Email address *', popup_phone_ph: 'Phone number',
+            popup_select: 'Product interest', popup_msg_ph: 'Briefly describe your needs — event type, venue size, budget, etc.',
+            popup_submit: 'Get Your Quote Now', popup_trust1: 'CE/FCC Certified', popup_trust2: '50+ Countries', popup_trust3: '24h Response',
             footer_desc: '15 years of stage effects excellence, lighting up every show with technology and art.',
             footer_products: 'Products', footer_solutions: 'Solutions', footer_about: 'About Us',
             footer_about_co: 'Company', footer_news: 'News', footer_join: 'Careers', footer_partners: 'Partners',
@@ -229,6 +237,10 @@ document.addEventListener('DOMContentLoaded', () => {
             form_product: 'Producto de Interés', form_select: 'Seleccione tipo de producto', form_comprehensive: 'Solución Integral',
             form_msg: 'Requisitos *', form_msg_ph: 'Describa sus necesidades — tipo de evento, tamaño del lugar, efectos deseados, etc.',
             form_submit: 'Enviar Consulta',
+            popup_title: 'Obtenga su Cotización', popup_subtitle: '15 años de experiencia en efectos escénicos, respuesta en 24 horas',
+            popup_name_ph: 'Su nombre *', popup_email_ph: 'Correo electrónico *', popup_phone_ph: 'Teléfono',
+            popup_select: 'Producto de interés', popup_msg_ph: 'Describa brevemente sus necesidades — tipo de evento, tamaño del lugar, presupuesto, etc.',
+            popup_submit: 'Obtener Cotización Ahora', popup_trust1: 'Certificado CE/FCC', popup_trust2: '50+ Países', popup_trust3: 'Respuesta 24h',
             footer_desc: '15 años de excelencia en efectos escénicos, iluminando cada show con tecnología y arte.',
             footer_products: 'Productos', footer_solutions: 'Soluciones', footer_about: 'Nosotros',
             footer_about_co: 'Empresa', footer_news: 'Noticias', footer_join: 'Empleo', footer_partners: 'Socios',
@@ -305,6 +317,10 @@ document.addEventListener('DOMContentLoaded', () => {
             form_product: 'Produto de Interesse', form_select: 'Selecione o tipo de produto', form_comprehensive: 'Solução Integral',
             form_msg: 'Requisitos *', form_msg_ph: 'Descreva suas necessidades — tipo de evento, tamanho do local, efeitos desejados, etc.',
             form_submit: 'Enviar Consulta',
+            popup_title: 'Obtenha seu Orçamento', popup_subtitle: '15 anos de experiência em efeitos cênicos, resposta em 24 horas',
+            popup_name_ph: 'Seu nome *', popup_email_ph: 'Endereço de e-mail *', popup_phone_ph: 'Telefone',
+            popup_select: 'Produto de interesse', popup_msg_ph: 'Descreva brevemente suas necessidades — tipo de evento, tamanho do local, orçamento, etc.',
+            popup_submit: 'Obter Orçamento Agora', popup_trust1: 'Certificado CE/FCC', popup_trust2: '50+ Países', popup_trust3: 'Resposta 24h',
             footer_desc: '15 anos de excelência em efeitos cênicos, iluminando cada show com tecnologia e arte.',
             footer_products: 'Produtos', footer_solutions: 'Soluções', footer_about: 'Sobre Nós',
             footer_about_co: 'Empresa', footer_news: 'Notícias', footer_join: 'Carreiras', footer_partners: 'Parceiros',
@@ -559,4 +575,79 @@ document.addEventListener('DOMContentLoaded', () => {
             if (target) window.scrollTo({ top: target.offsetTop - 80, behavior: 'smooth' });
         });
     });
+
+    // ========== 首次访问询盘弹窗 ==========
+    const inquiryOverlay = document.getElementById('inquiryOverlay');
+    const inquiryClose = document.getElementById('inquiryClose');
+    const inquiryForm = document.getElementById('inquiryForm');
+
+    // 检查是否首次访问（用 sessionStorage 控制，关闭浏览器后下次访问会再次弹出）
+    function showInquiryPopup() {
+        const dismissed = sessionStorage.getItem('inquiry_dismissed');
+        if (!dismissed && inquiryOverlay) {
+            setTimeout(() => {
+                inquiryOverlay.classList.add('active');
+            }, 2000); // 页面加载2秒后弹出
+        }
+    }
+
+    function closeInquiryPopup() {
+        if (inquiryOverlay) {
+            inquiryOverlay.classList.remove('active');
+            sessionStorage.setItem('inquiry_dismissed', 'true');
+        }
+    }
+
+    if (inquiryClose) {
+        inquiryClose.addEventListener('click', closeInquiryPopup);
+    }
+
+    // 点击遮罩层关闭
+    if (inquiryOverlay) {
+        inquiryOverlay.addEventListener('click', (e) => {
+            if (e.target === inquiryOverlay) closeInquiryPopup();
+        });
+    }
+
+    // ESC 键关闭
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeInquiryPopup();
+    });
+
+    // 弹窗表单提交
+    if (inquiryForm) {
+        inquiryForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const btn = inquiryForm.querySelector('.inquiry-submit');
+            const orig = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            btn.style.pointerEvents = 'none';
+
+            fetch(inquiryForm.action, {
+                method: 'POST',
+                body: new FormData(inquiryForm),
+                headers: { 'Accept': 'application/json' }
+            }).then(res => {
+                if (res.ok) {
+                    btn.innerHTML = '<i class="fas fa-check"></i> ✓';
+                    btn.style.background = 'linear-gradient(135deg, #06d6a0, #118ab2)';
+                    setTimeout(() => {
+                        closeInquiryPopup();
+                        inquiryForm.reset();
+                        btn.innerHTML = orig;
+                        btn.style.background = '';
+                        btn.style.pointerEvents = '';
+                    }, 1500);
+                } else {
+                    btn.innerHTML = orig;
+                    btn.style.pointerEvents = '';
+                }
+            }).catch(() => {
+                btn.innerHTML = orig;
+                btn.style.pointerEvents = '';
+            });
+        });
+    }
+
+    showInquiryPopup();
 });

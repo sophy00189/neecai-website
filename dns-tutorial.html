@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>添加 DNS 记录教程 - www.neecai.net</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif; background: #0f172a; color: #e2e8f0; line-height: 1.8; padding: 20px; }
+  .container { max-width: 800px; margin: 0 auto; }
+  h1 { text-align: center; color: #ff6b35; font-size: 28px; margin-bottom: 30px; padding: 20px 0; border-bottom: 2px solid #ff6b35; }
+  h2 { color: #38bdf8; font-size: 22px; margin: 30px 0 15px; display: flex; align-items: center; gap: 10px; }
+  h2 .step-num { background: #ff6b35; color: #fff; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .step-box { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 24px; margin: 15px 0; }
+  .step-box p { margin: 10px 0; font-size: 16px; }
+  .step-box .highlight { color: #ff6b35; font-weight: bold; }
+  .step-box .path { background: #0f172a; color: #38bdf8; padding: 8px 14px; border-radius: 6px; font-family: monospace; display: inline-block; margin: 8px 0; font-size: 15px; }
+  .mock-ui { background: #fff; border-radius: 10px; padding: 0; margin: 20px 0; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+  .mock-browser-bar { background: #e5e7eb; padding: 10px 16px; display: flex; align-items: center; gap: 8px; }
+  .mock-browser-dot { width: 12px; height: 12px; border-radius: 50%; }
+  .mock-browser-dot.red { background: #ef4444; }
+  .mock-browser-dot.yellow { background: #f59e0b; }
+  .mock-browser-dot.green { background: #22c55e; }
+  .mock-browser-url { background: #fff; border-radius: 6px; padding: 6px 12px; font-size: 13px; color: #64748b; flex: 1; font-family: monospace; }
+  .mock-content { padding: 20px; color: #1e293b; font-size: 14px; }
+  .mock-cf-sidebar { display: flex; gap: 0; }
+  .mock-cf-nav { width: 200px; background: #f1f5f9; padding: 12px; border-right: 1px solid #e2e8f0; }
+  .mock-cf-nav-item { padding: 8px 12px; border-radius: 6px; margin: 2px 0; font-size: 13px; color: #475569; }
+  .mock-cf-nav-item.active { background: #f97316; color: #fff; }
+  .mock-cf-main { flex: 1; padding: 16px; }
+  .mock-cf-header { font-size: 18px; font-weight: 700; color: #1e293b; margin-bottom: 12px; }
+  .mock-table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+  .mock-table th, .mock-table td { border: 1px solid #e2e8f0; padding: 8px 12px; text-align: left; font-size: 13px; }
+  .mock-table th { background: #f8fafc; color: #475569; font-weight: 600; }
+  .mock-table td { color: #334155; }
+  .mock-btn { display: inline-block; padding: 8px 20px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: default; }
+  .mock-btn-orange { background: #f97316; color: #fff; }
+  .mock-btn-blue { background: #3b82f6; color: #fff; }
+  .mock-form-row { display: flex; gap: 10px; align-items: center; margin: 8px 0; flex-wrap: wrap; }
+  .mock-form-group { display: flex; flex-direction: column; gap: 4px; }
+  .mock-form-group label { font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; }
+  .mock-form-group .value { background: #fff; border: 1px solid #d1d5db; border-radius: 6px; padding: 8px 12px; font-size: 13px; color: #1e293b; min-width: 120px; }
+  .mock-form-group .value.cname { background: #fef3c7; border-color: #f59e0b; font-weight: 700; color: #92400e; }
+  .mock-form-group .value.www { background: #dbeafe; border-color: #3b82f6; font-weight: 700; color: #1e40af; }
+  .mock-toggle { display: flex; align-items: center; gap: 6px; }
+  .mock-toggle-track { width: 36px; height: 20px; background: #22c55e; border-radius: 10px; position: relative; }
+  .mock-toggle-thumb { width: 16px; height: 16px; background: #fff; border-radius: 50%; position: absolute; right: 2px; top: 2px; }
+  .success-box { background: #052e16; border: 2px solid #22c55e; border-radius: 12px; padding: 24px; margin: 20px 0; text-align: center; }
+  .success-box .icon { font-size: 48px; margin-bottom: 10px; }
+  .success-box h3 { color: #4ade80; font-size: 20px; }
+  .success-box p { color: #86efac; margin-top: 8px; }
+  .warning-box { background: #431407; border: 2px solid #f97316; border-radius: 12px; padding: 20px; margin: 15px 0; }
+  .warning-box h3 { color: #fb923c; margin-bottom: 8px; }
+  .warning-box p { color: #fed7aa; }
+  .arrow { text-align: center; font-size: 28px; color: #ff6b35; margin: 10px 0; }
+  .result-link { display: block; text-align: center; font-size: 20px; color: #38bdf8; margin: 20px 0; font-weight: bold; text-decoration: none; }
+  .note { background: #1e3a5f; border-left: 4px solid #38bdf8; padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 10px 0; font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>🔧 添加 DNS 记录教程</h1>
+<p style="text-align:center; font-size:18px; margin-bottom:30px;">让 <strong>www.neecai.net</strong> 指向你的网站</p>
+
+<div class="warning-box">
+  <h3>⚠️ 当前状态</h3>
+  <p>网站已成功部署在 <strong>https://neecai-website.pages.dev</strong>，但 <strong>www.neecai.net</strong> 还无法访问，因为缺少一条 DNS 记录。只需 2 分钟即可搞定！</p>
+</div>
+
+<!-- 步骤 1 -->
+<h2><span class="step-num">1</span> 登录 Cloudflare 并进入 DNS 设置</h2>
+<div class="step-box">
+  <p>1. 打开 Cloudflare 控制台：<span class="path">https://dash.cloudflare.com</span></p>
+  <p>2. 点击你的网站 <span class="highlight">neecai.net</span></p>
+  <p>3. 在左侧菜单中点击 <span class="highlight">DNS</span> → <span class="highlight">Records</span></p>
+</div>
+
+<div class="mock-ui">
+  <div class="mock-browser-bar">
+    <div class="mock-browser-dot red"></div>
+    <div class="mock-browser-dot yellow"></div>
+    <div class="mock-browser-dot green"></div>
+    <div class="mock-browser-url">dash.cloudflare.com → neecai.net → DNS → Records</div>
+  </div>
+  <div class="mock-content">
+    <div class="mock-cf-sidebar">
+      <div class="mock-cf-nav">
+        <div class="mock-cf-nav-item">🏠 首页</div>
+        <div class="mock-cf-nav-item">⚡ 速览</div>
+        <div class="mock-cf-nav-item">🌐 网站</div>
+        <div class="mock-cf-nav-item">🔐 SSL/TLS</div>
+        <div class="mock-cf-nav-item active">📋 DNS → Records</div>
+        <div class="mock-cf-nav-item">🛡️ 安全性</div>
+        <div class="mock-cf-nav-item">⚡ 速度</div>
+        <div class="mock-cf-nav-item">📊 分析</div>
+      </div>
+      <div class="mock-cf-main">
+        <div class="mock-cf-header">DNS Records</div>
+        <p style="color:#64748b; font-size:13px; margin-bottom:12px;">管理你的域名 DNS 记录</p>
+        <div style="text-align:right; margin-bottom:10px;">
+          <span class="mock-btn mock-btn-orange">+ 添加记录</span>
+        </div>
+        <table class="mock-table">
+          <tr><th>类型</th><th>名称</th><th>内容</th><th>代理状态</th><th>TTL</th></tr>
+          <tr><td>NS</td><td>neecai.net</td><td>khalid.ns.cloudflare.com</td><td>-</td><td>Auto</td></tr>
+          <tr><td>NS</td><td>neecai.net</td><td>ryleigh.ns.cloudflare.com</td><td>-</td><td>Auto</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="arrow">⬇️</div>
+
+<!-- 步骤 2 -->
+<h2><span class="step-num">2</span> 点击"添加记录"按钮</h2>
+<div class="step-box">
+  <p>点击页面右上角的 <span class="highlight">+ 添加记录</span> 按钮，会弹出一个表单</p>
+</div>
+
+<!-- 步骤 3 -->
+<h2><span class="step-num">3</span> 填写 CNAME 记录</h2>
+<div class="step-box">
+  <p>按照下面的信息填写表单：</p>
+  <table style="width:100%; margin:15px 0; border-collapse:collapse;">
+    <tr style="border-bottom:1px solid #334155;">
+      <td style="padding:10px; color:#94a3b8; width:120px;">类型 (Type)</td>
+      <td style="padding:10px;"><span class="highlight" style="font-size:18px;">CNAME</span></td>
+    </tr>
+    <tr style="border-bottom:1px solid #334155;">
+      <td style="padding:10px; color:#94a3b8;">名称 (Name)</td>
+      <td style="padding:10px;"><span style="color:#38bdf8; font-weight:bold; font-size:18px;">www</span></td>
+    </tr>
+    <tr style="border-bottom:1px solid #334155;">
+      <td style="padding:10px; color:#94a3b8;">内容 (Content)</td>
+      <td style="padding:10px;"><span style="color:#ff6b35; font-weight:bold; font-size:16px;">neecai-website.pages.dev</span></td>
+    </tr>
+    <tr style="border-bottom:1px solid #334155;">
+      <td style="padding:10px; color:#94a3b8;">代理状态</td>
+      <td style="padding:10px;"><span style="color:#22c55e; font-weight:bold;">已代理 (Proxied) 🟠</span></td>
+    </tr>
+    <tr>
+      <td style="padding:10px; color:#94a3b8;">TTL</td>
+      <td style="padding:10px;">Auto</td>
+    </tr>
+  </table>
+</div>
+
+<div class="mock-ui">
+  <div class="mock-browser-bar">
+    <div class="mock-browser-dot red"></div>
+    <div class="mock-browser-dot yellow"></div>
+    <div class="mock-browser-dot green"></div>
+    <div class="mock-browser-url">添加 DNS 记录</div>
+  </div>
+  <div class="mock-content">
+    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:20px; max-width:500px;">
+      <div style="font-size:16px; font-weight:700; color:#1e293b; margin-bottom:16px;">添加 DNS 记录</div>
+      <div class="mock-form-row">
+        <div class="mock-form-group">
+          <label>类型</label>
+          <div class="value">CNAME ▾</div>
+        </div>
+      </div>
+      <div class="mock-form-row">
+        <div class="mock-form-group">
+          <label>名称</label>
+          <div class="value www">www</div>
+        </div>
+        <div style="color:#94a3b8; font-size:12px; align-self:flex-end; padding-bottom:10px;">→ www.neecai.net</div>
+      </div>
+      <div class="mock-form-row">
+        <div class="mock-form-group" style="flex:1;">
+          <label>内容</label>
+          <div class="value cname" style="min-width:280px;">neecai-website.pages.dev</div>
+        </div>
+      </div>
+      <div class="mock-form-row">
+        <div class="mock-form-group">
+          <label>代理状态</label>
+          <div class="mock-toggle">
+            <div class="mock-toggle-track"><div class="mock-toggle-thumb"></div></div>
+            <span style="font-size:13px; color:#1e293b; font-weight:600;">已代理 (Proxied)</span>
+          </div>
+        </div>
+      </div>
+      <div class="mock-form-row">
+        <div class="mock-form-group">
+          <label>TTL</label>
+          <div class="value">Auto</div>
+        </div>
+      </div>
+      <div style="margin-top:16px; text-align:right;">
+        <span class="mock-btn mock-btn-blue">保存</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="note">
+  💡 <strong>重要提示：</strong>代理状态一定要选择 <strong>"已代理 (Proxied)"</strong>，图标是 🟠 橙色云朵，不要选成"仅 DNS (DNS only)" 灰色云朵。Proxied 模式才能使用 Cloudflare 的 CDN 加速和 SSL 证书。
+</div>
+
+<div class="arrow">⬇️</div>
+
+<!-- 步骤 4 -->
+<h2><span class="step-num">4</span> 点击"保存"</h2>
+<div class="step-box">
+  <p>点击 <span class="highlight">保存</span> 按钮完成添加。</p>
+  <p>添加后，DNS 记录列表应该变成这样：</p>
+</div>
+
+<div class="mock-ui">
+  <div class="mock-browser-bar">
+    <div class="mock-browser-dot red"></div>
+    <div class="mock-browser-dot yellow"></div>
+    <div class="mock-browser-dot green"></div>
+    <div class="mock-browser-url">dash.cloudflare.com → neecai.net → DNS → Records</div>
+  </div>
+  <div class="mock-content">
+    <div class="mock-cf-header">DNS Records</div>
+    <table class="mock-table">
+      <tr><th>类型</th><th>名称</th><th>内容</th><th>代理状态</th><th>TTL</th></tr>
+      <tr style="background:#ecfdf5;">
+        <td><strong>CNAME</strong></td>
+        <td><strong>www</strong></td>
+        <td><strong>neecai-website.pages.dev</strong></td>
+        <td>🟠 已代理</td>
+        <td>Auto</td>
+      </tr>
+      <tr><td>NS</td><td>neecai.net</td><td>khalid.ns.cloudflare.com</td><td>-</td><td>Auto</td></tr>
+      <tr><td>NS</td><td>neecai.net</td><td>ryleigh.ns.cloudflare.com</td><td>-</td><td>Auto</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="arrow">⬇️</div>
+
+<!-- 步骤 5 -->
+<h2><span class="step-num">5</span> 验证网站</h2>
+<div class="step-box">
+  <p>保存后等待 <strong>1-5 分钟</strong>，然后打开浏览器访问：</p>
+  <a class="result-link" href="https://www.neecai.net" target="_blank">https://www.neecai.net</a>
+  <p>如果能看到你的舞台特效网站，就说明配置成功了！🎉</p>
+</div>
+
+<div class="success-box">
+  <div class="icon">🎉</div>
+  <h3>大功告成！</h3>
+  <p>你的网站 <strong>www.neecai.net</strong> 已经可以访问了！</p>
+  <p style="margin-top:12px;">4种语言版本均可使用：中文 / English / Español / Português</p>
+</div>
+
+<div class="warning-box">
+  <h3>📝 后续待办事项</h3>
+  <p>1. <strong>Formspree 表单配置</strong>：当前联系表单的 YOUR_FORM_ID 需要替换为真实的 Formspree ID，否则表单提交不生效</p>
+  <p>2. <strong>根域名重定向</strong>：建议将 neecai.net 自动跳转到 www.neecai.net（可在 Cloudflare 的 Page Rules 中设置）</p>
+  <p>3. <strong>安全提醒</strong>：建议删除之前在聊天中分享的 GitHub Token 和 Cloudflare API Token</p>
+</div>
+
+</div>
+</body>
+</html>
