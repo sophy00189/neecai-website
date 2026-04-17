@@ -281,7 +281,16 @@ const DEFAULT_DATA = {
         zh:{title:'获取报价',subtitle:'填写以下信息，我们将在24小时内回复您',name:'姓名 *',name_ph:'请输入您的姓名',company:'公司',company_ph:'请输入公司名称',email:'邮箱 *',email_ph:'请输入邮箱地址',phone:'电话',phone_ph:'请输入联系电话',product:'感兴趣的产品',select:'请选择产品类型',msg:'需求描述 *',msg_ph:'请描述您的具体需求，如活动类型、场地规模、期望效果等',submit:'提交咨询'},
         en:{title:'Get a Quote',subtitle:'Fill in the form below and we\'ll respond within 24 hours',name:'Name *',name_ph:'Enter your name',company:'Company',company_ph:'Enter company name',email:'Email *',email_ph:'Enter your email',phone:'Phone',phone_ph:'Enter your phone number',product:'Product Interest',select:'Select product type',msg:'Requirements *',msg_ph:'Describe your needs — event type, venue size, desired effects, etc.',submit:'Submit Inquiry'},
         es:{title:'Obtener Cotización',subtitle:'Complete el formulario y le responderemos en 24 horas',name:'Nombre *',name_ph:'Ingrese su nombre',company:'Empresa',company_ph:'Ingrese nombre de empresa',email:'Correo *',email_ph:'Ingrese su correo',phone:'Teléfono',phone_ph:'Ingrese su teléfono',product:'Producto de Interés',select:'Seleccione tipo de producto',msg:'Requisitos *',msg_ph:'Describa sus necesidades — tipo de evento, tamaño del lugar, etc.',submit:'Enviar Consulta'},
-        pt:{title:'Obter Orçamento',subtitle:'Preencha o formulário e responderemos em 24 horas',name:'Nome *',name_ph:'Digite seu nome',company:'Empresa',company_ph:'Digite o nome da empresa',email:'E-mail *',email_ph:'Digite seu e-mail',phone:'Telefone',phone_ph:'Digite seu telefone',product:'Produto de Interesse',select:'Selecione o tipo de produto',msg:'Requisitos *',msg_ph:'Descreva suas necessidades — tipo de evento, tamanho do local, etc.',submit:'Enviar Consulta'}
+        pt:{title:'Obter Orçamento',subtitle:'Preencha o formulário e responderemos em 24 horas',name:'Nome *',name_ph:'Digite seu nome',company:'Empresa',company_ph:'Digite o nome da empresa',email:'E-mail *',email_ph:'Digite seu e-mail',phone:'Telefone',phone_ph:'Digite seu telefone',product:'Produto de Interesse',select:'Selecione o tipo de produto',msg:'Requisitos *',msg_ph:'Descreva suas necessidades — tipo de evento, tamanho do local, etc.',submit:'Enviar Consulta'},
+        product_options:[
+            {zh:'火焰特效',en:'Fire Effects',es:'Efectos de Fuego',pt:'Efeitos de Fogo'},
+            {zh:'火花特效',en:'Spark Effects',es:'Efectos de Chispas',pt:'Efeitos de Faíscas'},
+            {zh:'烟雾特效',en:'Smoke Effects',es:'Efectos de Humo',pt:'Efeitos de Fumaça'},
+            {zh:'彩花特效',en:'Confetti Effects',es:'Efectos de Confeti',pt:'Efeitos de Confete'},
+            {zh:'智能灯光',en:'Intelligent Lighting',es:'Iluminación Inteligente',pt:'Iluminação Inteligente'},
+            {zh:'全息投影',en:'Hologram Projection',es:'Proyección Holográfica',pt:'Projeção Holográfica'},
+            {zh:'综合方案',en:'Comprehensive Solution',es:'Solución Integral',pt:'Solução Integral'}
+        ]
     },
     popup: {
         zh:{title:'获取专属报价',subtitle:'15年舞台特效经验，24小时内回复您的需求',name_ph:'您的姓名 *',email_ph:'邮箱地址 *',phone_ph:'联系电话',select:'感兴趣的产品',msg_ph:'请简述您的需求，如活动类型、场地大小、预算范围等',submit:'立即获取报价',trust1:'CE/FCC认证',trust2:'50+国家客户',trust3:'24h回复'},
@@ -309,6 +318,7 @@ function loadData(){
         if(!siteData.form) siteData.form = defaults.form;
         if(!siteData.popup) siteData.popup = defaults.popup;
         if(!siteData.navbar) siteData.navbar = defaults.navbar;
+        if(!siteData.form.product_options) siteData.form.product_options = defaults.form.product_options;
     } else {
         siteData = defaults;
     }
@@ -511,6 +521,15 @@ function collectForm(){
         p[l].trust2 = document.getElementById('popup_'+l+'_trust2')?.value || p[l].trust2;
         p[l].trust3 = document.getElementById('popup_'+l+'_trust3')?.value || p[l].trust3;
     });
+    // 收集产品选项
+    if(siteData.form.product_options){
+        siteData.form.product_options.forEach((opt,i)=>{
+            opt.zh = document.getElementById('po_'+i+'_zh')?.value || opt.zh;
+            opt.en = document.getElementById('po_'+i+'_en')?.value || opt.en;
+            opt.es = document.getElementById('po_'+i+'_es')?.value || opt.es;
+            opt.pt = document.getElementById('po_'+i+'_pt')?.value || opt.pt;
+        });
+    }
 }
 
 loadData();
@@ -1470,6 +1489,22 @@ function renderForm(main){
         html += `</div>`;
     });
     html += `</div></div>`;
+    // 产品选择选项
+    html += `<div class="card"><div class="card-header" onclick="toggleCard(this)"><h3><i class="fas fa-list"></i> 产品选择下拉选项</h3><span class="card-toggle">展开/收起</span></div><div class="card-body">`;
+    html += `<p style="color:var(--text3);font-size:13px;margin-bottom:12px">编辑表单中"请选择产品类型"下拉框的选项内容</p>`;
+    const opts = f.product_options || [];
+    opts.forEach((opt,i)=>{
+        html += `<div class="card" style="margin-bottom:10px;border-color:var(--border)"><div class="card-body" style="gap:8px">`;
+        html += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span style="font-size:13px;color:var(--accent);font-weight:600">选项 ${i+1}</span>${opts.length>1?`<button class="btn btn-danger" style="font-size:11px;padding:2px 8px;margin-left:auto" onclick="removeProductOption(${i})"><i class="fas fa-trash"></i></button>`:''}</div>`;
+        html += `<div class="form-row-4">`;
+        html += inputGroup('中文','po_'+i+'_zh', opt.zh, null);
+        html += inputGroup('English','po_'+i+'_en', opt.en, null);
+        html += inputGroup('Español','po_'+i+'_es', opt.es, null);
+        html += inputGroup('Português','po_'+i+'_pt', opt.pt, null);
+        html += `</div></div></div>`;
+    });
+    html += `<button class="btn btn-primary" style="font-size:13px;padding:6px 14px" onclick="addProductOption()"><i class="fas fa-plus"></i> 添加选项</button>`;
+    html += `</div></div>`;
     // 弹窗表单
     html += `<div class="card"><div class="card-header"><h3><i class="fas fa-window-restore"></i> 弹窗询盘表单</h3></div><div class="card-body">`;
     html += langTabs('popup');
@@ -1495,6 +1530,20 @@ function renderForm(main){
     html += `</div></div>`;
     html += `<button class="btn btn-success" onclick="saveForm()"><i class="fas fa-save"></i> 保存表单</button></div>`;
     main.innerHTML = html;
+}
+
+function addProductOption(){
+    if(!siteData.form.product_options) siteData.form.product_options = [];
+    siteData.form.product_options.push({zh:'新选项',en:'New Option',es:'Nueva Opción',pt:'Nova Opção'});
+    saveData();
+    renderForm(document.getElementById('mainContent'));
+    showToast('已添加新选项','success');
+}
+function removeProductOption(i){
+    siteData.form.product_options.splice(i,1);
+    saveData();
+    renderForm(document.getElementById('mainContent'));
+    showToast('已删除选项','success');
 }
 
 function saveForm(){
@@ -1811,7 +1860,15 @@ function generateScriptJS(){
         Object.assign(t[l],{form_title:l==='zh'?'获取报价':l==='en'?'Get a Quote':l==='es'?'Obtener Cotización':'Obter Orçamento',form_subtitle:l==='zh'?'填写以下信息，我们将在24小时内回复您':l==='en'?'Fill in the form below and we\'ll respond within 24 hours':l==='es'?'Complete el formulario y le responderemos en 24 horas':'Preencha o formulário e responderemos em 24 horas'});
         Object.assign(t[l],{form_name:l==='zh'?'姓名 *':l==='en'?'Name *':l==='es'?'Nombre *':'Nome *',form_name_ph:l==='zh'?'请输入您的姓名':l==='en'?'Enter your name':l==='es'?'Ingrese su nombre':'Digite seu nome',form_company:l==='zh'?'公司':l==='en'?'Company':l==='es'?'Empresa':'Empresa',form_company_ph:l==='zh'?'请输入公司名称':l==='en'?'Enter company name':l==='es'?'Ingrese nombre de empresa':'Digite o nome da empresa'});
         Object.assign(t[l],{form_email:l==='zh'?'邮箱 *':l==='en'?'Email *':l==='es'?'Correo *':'E-mail *',form_email_ph:l==='zh'?'请输入邮箱地址':l==='en'?'Enter your email':l==='es'?'Ingrese su correo':'Digite seu e-mail',form_phone:l==='zh'?'电话':l==='en'?'Phone':l==='es'?'Teléfono':'Telefone',form_phone_ph:l==='zh'?'请输入联系电话':l==='en'?'Enter your phone number':l==='es'?'Ingrese su teléfono':'Digite seu telefone'});
-        Object.assign(t[l],{form_product:l==='zh'?'感兴趣的产品':l==='en'?'Product Interest':l==='es'?'Producto de Interés':'Produto de Interesse',form_select:l==='zh'?'请选择产品类型':l==='en'?'Select product type':l==='es'?'Seleccione tipo de producto':'Selecione o tipo de produto',form_comprehensive:l==='zh'?'综合方案':l==='en'?'Comprehensive Solution':l==='es'?'Solución Integral':'Solução Integral'});
+        Object.assign(t[l],{form_product:siteData.form[l].product,form_select:siteData.form[l].select});
+        // 产品选项
+        const popts = siteData.form.product_options;
+        if(popts && popts.length > 0){
+            popts.forEach((opt,idx) => {
+                t[l]['form_product_opt_'+idx] = opt[l];
+            });
+        }
+        t[l].form_comprehensive = popts && popts.length > 0 ? popts[popts.length-1][l] : (l==='zh'?'综合方案':l==='en'?'Comprehensive Solution':'Solución Integral');
         Object.assign(t[l],{form_msg:l==='zh'?'需求描述 *':l==='en'?'Requirements *':l==='es'?'Requisitos *':'Requisitos *',form_msg_ph:l==='zh'?'请描述您的具体需求，如活动类型、场地规模、期望效果等':l==='en'?'Describe your needs — event type, venue size, desired effects, etc.':l==='es'?'Describa sus necesidades — tipo de evento, tamaño del lugar, efectos deseados, etc.':'Descreva suas necessidades — tipo de evento, tamanho do local, efeitos desejados, etc.'});
         t[l].form_submit = l==='zh'?'提交咨询':l==='en'?'Submit Inquiry':l==='es'?'Enviar Consulta':'Enviar Consulta';
 
@@ -1966,6 +2023,28 @@ async function generateIndexHTML(){
     const ver = Date.now();
     html = html.replace(/style\.css\?v=\d+/, `style.css?v=${ver}`);
     html = html.replace(/script\.js\?v=\d+/, `script.js?v=${ver}`);
+
+    // Update product select options in both forms
+    const popts = siteData.form.product_options;
+    if(popts && popts.length > 0){
+        // Build new options HTML for page form (第一个select没有name)
+        const pageOptions = `<option value="" data-i18n="form_select">${siteData.form.zh.select}</option>\n` +
+            popts.map((opt, idx) => `                                <option data-i18n="form_product_opt_${idx}">${opt.zh}</option>`).join('\n');
+        // Build new options HTML for popup form (select有name="product")
+        const popupOptions = `<option value="" data-i18n="popup_select">${siteData.popup.zh.select}</option>\n` +
+            popts.map((opt, idx) => `                                <option data-i18n="form_product_opt_${idx}">${opt.zh}</option>`).join('\n');
+
+        // Replace page form select options
+        html = html.replace(
+            /<select>\s*<option value="" data-i18n="form_select">[\s\S]*?<\/select>/,
+            `<select>\n${pageOptions}\n                            </select>`
+        );
+        // Replace popup form select options
+        html = html.replace(
+            /<select name="product">\s*<option value="" data-i18n="popup_select">[\s\S]*?<\/select>/,
+            `<select name="product">\n${popupOptions}\n                        </select>`
+        );
+    }
 
     return html;
 }
