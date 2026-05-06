@@ -467,6 +467,7 @@ function collectContact(){
     siteData.contact.address_en = document.getElementById('ct_addr_en')?.value || siteData.contact.address_en;
     siteData.contact.address_es = document.getElementById('ct_addr_es')?.value || siteData.contact.address_es;
     siteData.contact.address_pt = document.getElementById('ct_addr_pt')?.value || siteData.contact.address_pt;
+    siteData.contact.whatsapp = document.getElementById('ct_whatsapp')?.value || siteData.contact.whatsapp || '';
 }
 
 function collectAdvantages(){
@@ -1356,6 +1357,7 @@ function renderContact(main){
     let html = `<div class="panel active"><div class="panel-title"><i class="fas fa-phone"></i> 联系方式</div><div class="card"><div class="card-body">`;
     html += inputGroup('电话','ct_phone', c.phone, null);
     html += inputGroup('邮箱','ct_email', c.email, null);
+    html += inputGroup('WhatsApp','ct_whatsapp', c.whatsapp||'', null);
     html += inputGroup('地址（中文）','ct_addr_zh', c.address_zh, null);
     html += inputGroup('地址（英文）','ct_addr_en', c.address_en, null);
     html += inputGroup('地址（西语）','ct_addr_es', c.address_es, null);
@@ -1854,7 +1856,7 @@ function generateScriptJS(){
         // Contact
         const ct = siteData.contact;
         Object.assign(t[l],{contact_title:l==='zh'?'联系我们':l==='en'?'Contact Us':l==='es'?'Contáctenos':'Contate-nos',contact_desc:l==='zh'?'无论您是需要产品咨询、方案定制还是售后支持，我们的团队随时为您服务。':l==='en'?'Whether you need product consultation, customized solutions, or after-sales support, our team is always ready.':l==='es'?'Ya sea consulta de productos, soluciones personalizadas o soporte postventa, nuestro equipo está siempre listo.':'Seja para consulta de produtos, soluções personalizadas ou suporte pós-venda, nossa equipe está sempre pronta.'});
-        Object.assign(t[l],{ct_phone_t:l==='zh'?'电话咨询':l==='en'?'Phone':l==='es'?'Teléfono':'Telefone',ct_email_t:l==='zh'?'邮件联系':l==='en'?'Email':l==='es'?'Correo':'E-mail',ct_addr_t:l==='zh'?'公司地址':l==='en'?'Address':l==='es'?'Dirección':'Endereço',ct_addr_d:ct['address_'+l]||ct.address_en});
+        Object.assign(t[l],{ct_phone_t:l==='zh'?'电话咨询':l==='en'?'Phone':l==='es'?'Teléfono':'Telefone',ct_phone:ct.phone,ct_email_t:l==='zh'?'邮件联系':l==='en'?'Email':l==='es'?'Correo':'E-mail',ct_email:ct.email,ct_addr_t:l==='zh'?'公司地址':l==='en'?'Address':l==='es'?'Dirección':'Endereço',ct_addr_d:ct['address_'+l]||ct.address_en,ct_whatsapp:ct.whatsapp||''});
 
         // Form
         Object.assign(t[l],{form_title:l==='zh'?'获取报价':l==='en'?'Get a Quote':l==='es'?'Obtener Cotización':'Obter Orçamento',form_subtitle:l==='zh'?'填写以下信息，我们将在24小时内回复您':l==='en'?'Fill in the form below and we\'ll respond within 24 hours':l==='es'?'Complete el formulario y le responderemos en 24 horas':'Preencha o formulário e responderemos em 24 horas'});
@@ -2000,6 +2002,14 @@ async function generateIndexHTML(){
     // Update contact info
     html = html.replace(/href="tel:[^"]*"/, `href="tel:${siteData.contact.phone}"`);
     html = html.replace(/href="mailto:[^"]*"/, `href="mailto:${siteData.contact.email}"`);
+    // Update phone text (not just href)
+    html = html.replace(/(<h4[^>]*data-i18n="ct_phone_t"[^>]*>.*?<\/h4>\s*<p>)([\s\S]*?)(<\/p>)/, `$1${siteData.contact.phone}$3`);
+    // Update email display text
+    html = html.replace(/(<h4[^>]*data-i18n="ct_email_t"[^>]*>.*?<\/h4>\s*<p>)([\s\S]*?)(<\/p>)/, `$1${siteData.contact.email}$3`);
+    // Update WhatsApp text
+    if(siteData.contact.whatsapp){
+        html = html.replace(/(<h4>WhatsApp<\/h4>\s*<p>)([\s\S]*?)(<\/p>)/, `$1${siteData.contact.whatsapp}$3`);
+    }
 
     // Update navbar logo
     const nb = siteData.navbar;
@@ -2054,3 +2064,4 @@ renderPanel('navbar');
 </script>
 </body>
 </html>
+
