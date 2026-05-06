@@ -154,7 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
         "ct_phone_t": "电话咨询",
         "ct_email_t": "邮件联系",
         "ct_addr_t": "公司地址",
-        "ct_addr_d": "北京市朝阳区文化创意园A座8层",
+        "ct_addr_d": "广州市白云区石井街聚源街50号4栋3A层7333",
         "form_title": "获取报价",
         "form_subtitle": "填写以下信息，我们将在24小时内回复您",
         "form_name": "姓名 *",
