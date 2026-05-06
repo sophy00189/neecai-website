@@ -120,6 +120,28 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC
 .dropdown-item-edit{display:none;padding:16px;background:var(--bg);border-bottom:1px solid var(--border)}
 .dropdown-item-edit.show{display:block}
 .dropdown-empty{text-align:center;padding:30px;color:var(--text3);font-size:14px}
+/* 产品分类管理 */
+.category-section{margin-bottom:20px}
+.category-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:var(--bg3);border-radius:var(--radius);cursor:pointer;transition:all .2s;border:1px solid var(--border)}
+.category-header:hover{border-color:var(--accent)}
+.category-header .cat-info{display:flex;align-items:center;gap:10px;flex:1}
+.category-header .cat-icon{color:var(--accent);font-size:16px;width:20px;text-align:center}
+.category-header .cat-name{font-size:15px;font-weight:600;color:var(--text)}
+.category-header .cat-count{font-size:12px;color:var(--text3);margin-left:6px}
+.category-header .cat-actions{display:flex;gap:6px}
+.category-header .cat-actions .btn-icon{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--text3);cursor:pointer;font-size:11px;transition:all .2s}
+.category-header .cat-actions .btn-icon:hover{background:var(--bg);color:var(--text)}
+.category-header .cat-actions .btn-icon.delete:hover{background:rgba(239,68,68,.15);color:var(--red);border-color:var(--red)}
+.category-body{display:none;padding:16px 0 0 0}
+.category-body.show{display:block}
+.category-body .sub-products{padding-left:20px;border-left:2px solid var(--border);margin-left:10px}
+.uncategorized-section{background:var(--bg2);border:1px dashed var(--border);border-radius:var(--radius);padding:16px;margin-bottom:16px}
+.uncategorized-header{font-size:14px;font-weight:600;color:var(--text3);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.cat-select{padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;outline:none;min-width:160px}
+.cat-select:focus{border-color:var(--accent)}
+.cat-form{display:none;padding:16px;background:var(--bg);border:1px solid var(--accent);border-radius:var(--radius);margin-bottom:12px}
+.cat-form.show{display:block}
+.cat-form .form-row{grid-template-columns:1fr 1fr 1fr;gap:10px}
 </style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
@@ -234,13 +256,21 @@ const LANGS = ['zh','en','es','pt'];
 const LANG_NAMES = {zh:'中文',en:'English',es:'Español',pt:'Português'};
 
 const DEFAULT_DATA = {
+    productCategories: [
+        {id:'fire_cat',icon:'fas fa-fire',zh:{name:'火灾效果'},en:{name:'Fire Effects'},es:{name:'Efectos de Fuego'},pt:{name:'Efeitos de Fogo'}},
+        {id:'spark_cat',icon:'fas fa-star-half-alt',zh:{name:'火花效果'},en:{name:'Spark Effects'},es:{name:'Efectos de Chispas'},pt:{name:'Efeitos de Faíscas'}},
+        {id:'smoke_cat',icon:'fas fa-cloud',zh:{name:'烟雾效果'},en:{name:'Smoke Effects'},es:{name:'Efectos de Humo'},pt:{name:'Efeitos de Fumaça'}},
+        {id:'confetti_cat',icon:'fas fa-gift',zh:{name:'彩花效果'},en:{name:'Confetti Effects'},es:{name:'Efectos de Confeti'},pt:{name:'Efeitos de Confete'}},
+        {id:'light_cat',icon:'fas fa-lightbulb',zh:{name:'智能灯光'},en:{name:'Intelligent Lighting'},es:{name:'Iluminación Inteligente'},pt:{name:'Iluminação Inteligente'}},
+        {id:'holo_cat',icon:'fas fa-cube',zh:{name:'全息投影'},en:{name:'Holographic Projection'},es:{name:'Proyección Holográfica'},pt:{name:'Projeção Holográfica'}}
+    ],
     products: [
-        {id:'fire',icon:'fas fa-fire',img:'',zh:{title:'火焰特效',desc:'专业级舞台火焰机，喷射高度可达8-10米，支持DMX512控制，瞬间点燃全场氛围。',f1:'多种火焰形态',f2:'智能安全防护',f3:'DMX512控制'},en:{title:'Fire Effects',desc:'Professional stage flame machines, 8-10m shooting height, DMX512 control, instantly igniting the atmosphere.',f1:'Multiple Flame Patterns',f2:'Smart Safety Protection',f3:'DMX512 Control'},es:{title:'Efectos de Fuego',desc:'Máquinas de llama profesionales, 8-10m de altura, control DMX512.',f1:'Múltiples Patrones',f2:'Protección Inteligente',f3:'Control DMX512'},pt:{title:'Efeitos de Fogo',desc:'Máquinas de chama profissionais, 8-10m de altura, controle DMX512.',f1:'Múltiplos Padrões',f2:'Proteção Inteligente',f3:'Controle DMX512'}},
-        {id:'spark',icon:'fas fa-star-half-alt',img:'',zh:{title:'火花特效',desc:'冷火花机系列，无烟无味安全环保，可变高度与密度，打造如梦如幻的视觉盛宴。',f1:'冷火花技术',f2:'可调喷射高度',f3:'防水等级IP55'},en:{title:'Spark Effects',desc:'Cold spark machines — smokeless, odorless, eco-friendly with adjustable height and density for dreamlike visuals.',f1:'Cold Spark Technology',f2:'Adjustable Height',f3:'IP55 Waterproof'},es:{title:'Efectos de Chispas',desc:'Máquinas de chispas frías, sin humo ni olor, ecológicas.',f1:'Tecnología Fría',f2:'Altura Ajustable',f3:'IP55 Impermeable'},pt:{title:'Efeitos de Faíscas',desc:'Máquinas de faíscas frias, sem fumaça, ecológicas.',f1:'Tecnologia Fria',f2:'Altura Ajustável',f3:'IP55 Impermeável'}},
-        {id:'smoke',icon:'fas fa-cloud',img:'',zh:{title:'烟雾特效',desc:'大功率烟雾机与低烟机，快速铺满舞台，配合灯光营造梦幻层次感。',f1:'超大烟量输出',f2:'低烟贴地效果',f3:'环保配方'},en:{title:'Smoke Effects',desc:'High-power fog and low-lying smoke machines, quickly covering the stage with dreamy layered effects.',f1:'Massive Output',f2:'Low-Lying Fog',f3:'Eco-Friendly Formula'},es:{title:'Efectos de Humo',desc:'Máquinas de humo de alta potencia y humo bajo.',f1:'Gran Salida',f2:'Humo Bajo',f3:'Fórmula Ecológica'},pt:{title:'Efeitos de Fumaça',desc:'Máquinas de fumaça de alta potência e fumaça baixa.',f1:'Grande Saída',f2:'Fumaça Baixa',f3:'Fórmula Ecológica'}},
-        {id:'confetti',icon:'fas fa-gift',img:'',zh:{title:'彩花特效',desc:'电动彩花机与礼炮，瞬间喷射漫天彩纸彩带，将现场气氛推至最高潮。',f1:'多彩多形态',f2:'远距离喷射',f3:'遥控触发'},en:{title:'Confetti Effects',desc:'Electric confetti cannons and streamer shooters, instantly filling the air with color and pushing excitement to the peak.',f1:'Multi-Color & Shapes',f2:'Long-Range Shooting',f3:'Remote Trigger'},es:{title:'Efectos de Confeti',desc:'Cañones de confeti eléctricos, llenando el aire de color.',f1:'Multi-Color',f2:'Largo Alcance',f3:'Disparo Remoto'},pt:{title:'Efeitos de Confete',desc:'Canhões de confete elétricos, enchendo o ar de cor.',f1:'Multi-Cor',f2:'Longo Alcance',f3:'Disparo Remoto'}},
-        {id:'light',icon:'fas fa-lightbulb',img:'',zh:{title:'智能灯光',desc:'专业舞台灯光系统，包含光束灯、染色灯、追光灯，打造极致光影艺术。',f1:'全彩RGBW',f2:'超高亮度',f3:'无限联动'},en:{title:'Intelligent Lighting',desc:'Professional stage lighting systems — beam, wash, and follow spots creating the ultimate light art.',f1:'Full RGBW Color',f2:'Ultra-High Brightness',f3:'Unlimited Linking'},es:{title:'Iluminación Inteligente',desc:'Sistemas de iluminación profesional para escenarios.',f1:'RGBW Completo',f2:'Ultra Brillo',f3:'Enlace Ilimitado'},pt:{title:'Iluminação Inteligente',desc:'Sistemas de iluminação profissional para palcos.',f1:'RGBW Completo',f2:'Ultra Brilho',f3:'Link Ilimitado'}},
-        {id:'holo',icon:'fas fa-cube',img:'',zh:{title:'全息投影',desc:'裸眼3D全息投影系统，虚实融合沉浸式体验，开创舞台视觉新纪元。',f1:'裸眼3D效果',f2:'超高清画质',f3:'定制内容'},en:{title:'Holographic Projection',desc:'Glasses-free 3D holographic systems, blending virtual and real for a new era of stage visuals.',f1:'Glasses-Free 3D',f2:'Ultra HD Quality',f3:'Custom Content'},es:{title:'Proyección Holográfica',desc:'Sistemas holográficos 3D sin gafas, mezclando virtual y real.',f1:'3D Sin Gafas',f2:'Calidad Ultra HD',f3:'Contenido Personalizado'},pt:{title:'Projeção Holográfica',desc:'Sistemas holográficos 3D sem óculos, misturando virtual e real.',f1:'3D Sem Óculos',f2:'Qualidade Ultra HD',f3:'Conteúdo Personalizado'}}
+        {id:'fire',icon:'fas fa-fire',categoryId:'fire_cat',img:'',zh:{title:'火焰特效',desc:'专业级舞台火焰机，喷射高度可达8-10米，支持DMX512控制，瞬间点燃全场氛围。',f1:'多种火焰形态',f2:'智能安全防护',f3:'DMX512控制'},en:{title:'Fire Effects',desc:'Professional stage flame machines, 8-10m shooting height, DMX512 control, instantly igniting the atmosphere.',f1:'Multiple Flame Patterns',f2:'Smart Safety Protection',f3:'DMX512 Control'},es:{title:'Efectos de Fuego',desc:'Máquinas de llama profesionales, 8-10m de altura, control DMX512.',f1:'Múltiples Patrones',f2:'Protección Inteligente',f3:'Control DMX512'},pt:{title:'Efeitos de Fogo',desc:'Máquinas de chama profissionais, 8-10m de altura, controle DMX512.',f1:'Múltiplos Padrões',f2:'Proteção Inteligente',f3:'Controle DMX512'}},
+        {id:'spark',icon:'fas fa-star-half-alt',categoryId:'spark_cat',img:'',zh:{title:'火花特效',desc:'冷火花机系列，无烟无味安全环保，可变高度与密度，打造如梦如幻的视觉盛宴。',f1:'冷火花技术',f2:'可调喷射高度',f3:'防水等级IP55'},en:{title:'Spark Effects',desc:'Cold spark machines — smokeless, odorless, eco-friendly with adjustable height and density for dreamlike visuals.',f1:'Cold Spark Technology',f2:'Adjustable Height',f3:'IP55 Waterproof'},es:{title:'Efectos de Chispas',desc:'Máquinas de chispas frías, sin humo ni olor, ecológicas.',f1:'Tecnología Fría',f2:'Altura Ajustable',f3:'IP55 Impermeable'},pt:{title:'Efeitos de Faíscas',desc:'Máquinas de faíscas frias, sem fumaça, ecológicas.',f1:'Tecnologia Fria',f2:'Altura Ajustável',f3:'IP55 Impermeável'}},
+        {id:'smoke',icon:'fas fa-cloud',categoryId:'smoke_cat',img:'',zh:{title:'烟雾特效',desc:'大功率烟雾机与低烟机，快速铺满舞台，配合灯光营造梦幻层次感。',f1:'超大烟量输出',f2:'低烟贴地效果',f3:'环保配方'},en:{title:'Smoke Effects',desc:'High-power fog and low-lying smoke machines, quickly covering the stage with dreamy layered effects.',f1:'Massive Output',f2:'Low-Lying Fog',f3:'Eco-Friendly Formula'},es:{title:'Efectos de Humo',desc:'Máquinas de humo de alta potencia y humo bajo.',f1:'Gran Salida',f2:'Humo Bajo',f3:'Fórmula Ecológica'},pt:{title:'Efeitos de Fumaça',desc:'Máquinas de fumaça de alta potência e fumaça baixa.',f1:'Grande Saída',f2:'Fumaça Baixa',f3:'Fórmula Ecológica'}},
+        {id:'confetti',icon:'fas fa-gift',categoryId:'confetti_cat',img:'',zh:{title:'彩花特效',desc:'电动彩花机与礼炮，瞬间喷射漫天彩纸彩带，将现场气氛推至最高潮。',f1:'多彩多形态',f2:'远距离喷射',f3:'遥控触发'},en:{title:'Confetti Effects',desc:'Electric confetti cannons and streamer shooters, instantly filling the air with color and pushing excitement to the peak.',f1:'Multi-Color & Shapes',f2:'Long-Range Shooting',f3:'Remote Trigger'},es:{title:'Efectos de Confeti',desc:'Cañones de confeti eléctricos, llenando el aire de color.',f1:'Multi-Color',f2:'Largo Alcance',f3:'Disparo Remoto'},pt:{title:'Efeitos de Confete',desc:'Canhões de confete elétricos, enchendo o ar de cor.',f1:'Multi-Cor',f2:'Longo Alcance',f3:'Disparo Remoto'}},
+        {id:'light',icon:'fas fa-lightbulb',categoryId:'light_cat',img:'',zh:{title:'智能灯光',desc:'专业舞台灯光系统，包含光束灯、染色灯、追光灯，打造极致光影艺术。',f1:'全彩RGBW',f2:'超高亮度',f3:'无限联动'},en:{title:'Intelligent Lighting',desc:'Professional stage lighting systems — beam, wash, and follow spots creating the ultimate light art.',f1:'Full RGBW Color',f2:'Ultra-High Brightness',f3:'Unlimited Linking'},es:{title:'Iluminación Inteligente',desc:'Sistemas de iluminación profesional para escenarios.',f1:'RGBW Completo',f2:'Ultra Brillo',f3:'Enlace Ilimitado'},pt:{title:'Iluminação Inteligente',desc:'Sistemas de iluminação profissional para palcos.',f1:'RGBW Completo',f2:'Ultra Brilho',f3:'Link Ilimitado'}},
+        {id:'holo',icon:'fas fa-cube',categoryId:'holo_cat',img:'',zh:{title:'全息投影',desc:'裸眼3D全息投影系统，虚实融合沉浸式体验，开创舞台视觉新纪元。',f1:'裸眼3D效果',f2:'超高清画质',f3:'定制内容'},en:{title:'Holographic Projection',desc:'Glasses-free 3D holographic systems, blending virtual and real for a new era of stage visuals.',f1:'Glasses-Free 3D',f2:'Ultra HD Quality',f3:'Custom Content'},es:{title:'Proyección Holográfica',desc:'Sistemas holográficos 3D sin gafas, mezclando virtual y real.',f1:'3D Sin Gafas',f2:'Calidad Ultra HD',f3:'Contenido Personalizado'},pt:{title:'Projeção Holográfica',desc:'Sistemas holográficos 3D sem óculos, misturando virtual e real.',f1:'3D Sem Óculos',f2:'Qualidade Ultra HD',f3:'Conteúdo Personalizado'}}
     ],
     solutions: [
         {id:'concert',icon:'fas fa-music',zh:{tab:'演唱会',title:'演唱会特效方案',desc:'我们为演唱会提供从设计到执行的全方位特效解决方案。结合艺人风格与曲目编排，打造沉浸式的视听盛宴。',f1_t:'火焰+火花联动',f1_d:'高潮段落火焰与火花同步触发，震撼力拉满',f2_t:'灯光+烟雾编排',f2_d:'精准的时间码同步，灯光与烟雾完美配合',f3_t:'定制化编程',f3_d:'根据演出编排逐帧编程，每个特效精准触发'},en:{tab:'Concert',title:'Concert Effects Solution',desc:'Comprehensive effects solutions from design to execution. Combining artist style with setlist arrangements for an immersive audio-visual feast.',f1_t:'Fire + Spark Sync',f1_d:'Flames and sparks triggered simultaneously at climax moments',f2_t:'Lighting + Smoke Choreography',f2_d:'Precise timecode sync for perfect lighting-smoke coordination',f3_t:'Custom Programming',f3_d:'Frame-by-frame programming with precise effect triggering'},es:{tab:'Concierto',title:'Solución de Efectos para Conciertos',desc:'Soluciones integrales desde el diseño hasta la ejecución.',f1_t:'Fuego + Chispas',f1_d:'Llamas y chispas sincronizadas',f2_t:'Luz + Humo',f2_d:'Sincronización precisa de tiempo',f3_t:'Programación Personalizada',f3_d:'Programación fotograma a fotograma'},pt:{tab:'Concerto',title:'Solução de Efeitos para Concertos',desc:'Soluções abrangentes do design à execução.',f1_t:'Fogo + Faíscas',f1_d:'Chamas e faíscas sincronizadas',f2_t:'Luz + Fumaça',f2_d:'Sincronização precisa de tempo',f3_t:'Programação Personalizada',f3_d:'Programação quadro a quadro'}},
@@ -352,6 +382,9 @@ function loadData(){
         if(!siteData.form.product_options) siteData.form.product_options = defaults.form.product_options;
         if(siteData.navbar.productDropdownEnabled === undefined) siteData.navbar.productDropdownEnabled = true;
         if(!siteData.navbar.productDropdown) siteData.navbar.productDropdown = defaults.navbar.productDropdown;
+        if(!siteData.productCategories) siteData.productCategories = defaults.productCategories;
+        // 给现有产品补 categoryId 字段
+        siteData.products.forEach(p => { if(!p.categoryId) p.categoryId = ''; });
     } else {
         siteData = defaults;
     }
@@ -411,6 +444,7 @@ function collectProducts(){
     siteData.products.forEach((p,i)=>{
         p.id = document.getElementById('prod_id_'+i)?.value || p.id;
         p.icon = document.getElementById('prod_icon_'+i)?.value || p.icon;
+        p.categoryId = document.getElementById('prod_cat_'+i)?.value || p.categoryId || '';
         const parent = document.getElementById('ie_prod_'+p.id)?.parentElement;
         if(parent){
             if(parent.dataset.imgData) p.img = parent.dataset.imgData;
@@ -1286,12 +1320,71 @@ function saveNavbar(){
 
 // ========== 产品管理 ==========
 function renderProducts(main){
+    const cats = siteData.productCategories || [];
     let html = `<div class="panel active"><div class="panel-title"><i class="fas fa-box"></i> 产品管理</div>`;
+
+    // ========== 产品分类管理区 ==========
+    html += `<div class="card"><div class="card-header" onclick="toggleCard(this)"><h3><i class="fas fa-chevron-down"></i> 产品分类管理</h3><span class="card-toggle">展开/收起</span></div><div class="card-body">`;
+    html += `<div style="margin-bottom:12px;display:flex;align-items:center;justify-content:space-between"><p style="font-size:13px;color:var(--text3)">管理产品大类，每个分类下可添加多个具体产品</p><button class="btn btn-primary" onclick="toggleCategoryForm()" style="font-size:12px;padding:6px 14px"><i class="fas fa-plus"></i> 添加分类</button></div>`;
+    html += `<div class="cat-form" id="categoryForm">`;
+    html += `<div class="form-row">`;
+    html += inputGroup('分类ID','cat_new_id', 'cat_' + Date.now(), null);
+    html += inputGroup('图标 Class','cat_new_icon', 'fas fa-star', null);
+    html += inputGroup('中文名称','cat_new_zh', '新分类', 'zh');
+    html += `</div><div class="form-row">`;
+    html += inputGroup('英文名称','cat_new_en', 'New Category', 'en');
+    html += inputGroup('西语名称','cat_new_es', 'Nueva Categoría', 'es');
+    html += inputGroup('葡语名称','cat_new_pt', 'Nova Categoria', 'pt');
+    html += `</div><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn btn-success" onclick="addCategory()" style="font-size:12px;padding:6px 14px"><i class="fas fa-check"></i> 确定</button><button class="btn btn-secondary" onclick="toggleCategoryForm()" style="font-size:12px;padding:6px 14px">取消</button></div>`;
+    html += `</div>`;
+
+    if(cats.length === 0){
+        html += `<div class="dropdown-empty"><i class="fas fa-inbox" style="font-size:24px;margin-bottom:8px;display:block"></i>暂无分类，点击上方按钮添加</div>`;
+    } else {
+        cats.forEach((cat, ci) => {
+            const catProducts = siteData.products.filter(p => p.categoryId === cat.id);
+            html += `<div class="category-section" id="catSection_${ci}">`;
+            html += `<div class="category-header" onclick="toggleCategoryBody(${ci})">`;
+            html += `<div class="cat-info"><i class="${cat.icon || 'fas fa-folder'} cat-icon"></i><span class="cat-name">${cat.zh?.name || '未命名'}</span><span class="cat-count">(${catProducts.length}个产品)</span></div>`;
+            html += `<div class="cat-actions" onclick="event.stopPropagation()">`;
+            html += `<button class="btn-icon" onclick="editCategory(${ci})" title="编辑"><i class="fas fa-pen"></i></button>`;
+            html += `<button class="btn-icon" onclick="moveCategory(${ci},-1)" title="上移"><i class="fas fa-arrow-up"></i></button>`;
+            html += `<button class="btn-icon" onclick="moveCategory(${ci},1)" title="下移"><i class="fas fa-arrow-down"></i></button>`;
+            html += `<button class="btn-icon delete" onclick="removeCategory(${ci})" title="删除"><i class="fas fa-trash"></i></button>`;
+            html += `</div></div>`;
+            html += `<div class="category-body" id="catBody_${ci}">`;
+            html += `<div id="catEdit_${ci}" style="display:none"></div>`;
+            if(catProducts.length > 0){
+                html += `<div class="sub-products">`;
+                catProducts.forEach(p => {
+                    html += `<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg2);border-radius:6px;margin-bottom:6px;border:1px solid var(--border)">`;
+                    html += `<i class="${p.icon || 'fas fa-box'}" style="color:var(--accent);font-size:13px"></i>`;
+                    html += `<span style="flex:1;font-size:13px;color:var(--text)">${p.zh.title}</span>`;
+                    html += `<span style="font-size:11px;color:var(--text3)">ID: ${p.id}</span>`;
+                    html += `</div>`;
+                });
+                html += `</div>`;
+            } else {
+                html += `<p style="padding:8px 12px;font-size:13px;color:var(--text3)">该分类下暂无产品</p>`;
+            }
+            html += `</div></div>`;
+        });
+    }
+    html += `</div></div>`;
+
+    // ========== 产品列表管理区 ==========
+    html += `<div class="card"><div class="card-header" onclick="toggleCard(this)"><h3><i class="fas fa-chevron-down"></i> 产品列表管理</h3><span class="card-toggle">展开/收起</span></div><div class="card-body">`;
     siteData.products.forEach((p,i)=>{
-        html += `<div class="card"><div class="card-header" onclick="toggleCard(this)"><h3><i class="fas fa-chevron-down"></i> ${p.zh.title}</h3><span class="card-toggle">展开/收起</span></div><div class="card-body">`;
+        html += `<div class="card" style="border-color:var(--border);margin-bottom:12px"><div class="card-header" onclick="toggleCard(this)"><h3><i class="fas fa-chevron-down"></i> ${p.zh.title}</h3><span class="card-toggle">展开/收起</span></div><div class="card-body">`;
         html += `<div class="form-row">${imgUploader('prod_'+p.id, p.img, p.imgWidth, p.imgHeight)}<div style="flex:1;display:flex;flex-direction:column;gap:14px">`;
         html += inputGroup('产品ID','prod_id_'+i, p.id, null);
         html += inputGroup('图标 Class','prod_icon_'+i, p.icon, null);
+        // 分类选择
+        let catOptions = `<option value="">-- 无分类 --</option>`;
+        cats.forEach(c => {
+            catOptions += `<option value="${c.id}" ${p.categoryId===c.id?'selected':''}>${c.zh?.name || c.id}</option>`;
+        });
+        html += `<div class="form-group"><label>所属分类</label><select id="prod_cat_${i}" class="cat-select" onchange="autoSave()">${catOptions}</select></div>`;
         html += `</div></div>`;
         html += langTabs('prod_'+i);
         LANGS.forEach(l=>{
@@ -1308,14 +1401,101 @@ function renderProducts(main){
         html += `</div></div>`;
     });
     html += `<button class="btn btn-primary" onclick="addProduct()"><i class="fas fa-plus"></i> 添加产品</button>`;
-    html += `<div style="margin-top:16px"><button class="btn btn-success" onclick="saveProducts()"><i class="fas fa-save"></i> 保存产品</button></div></div>`;
+    html += `<div style="margin-top:16px"><button class="btn btn-success" onclick="saveProducts()"><i class="fas fa-save"></i> 保存产品</button></div></div></div>`;
     main.innerHTML = html;
     siteData.products.forEach(p => { if(p.img) initImgEditor('prod_'+p.id); });
 }
 
+// ========== 产品分类管理函数 ==========
+function toggleCategoryForm(){
+    const form = document.getElementById('categoryForm');
+    if(form) form.classList.toggle('show');
+}
+
+function addCategory(){
+    const cats = siteData.productCategories || [];
+    const id = document.getElementById('cat_new_id')?.value || ('cat_' + Date.now());
+    if(cats.some(c => c.id === id)){showToast('分类ID已存在','error');return;}
+    cats.push({
+        id:id,
+        icon: document.getElementById('cat_new_icon')?.value || 'fas fa-star',
+        zh:{name: document.getElementById('cat_new_zh')?.value || '新分类'},
+        en:{name: document.getElementById('cat_new_en')?.value || 'New Category'},
+        es:{name: document.getElementById('cat_new_es')?.value || 'Nueva'},
+        pt:{name: document.getElementById('cat_new_pt')?.value || 'Nova'}
+    });
+    siteData.productCategories = cats;
+    saveData();
+    renderProducts(document.getElementById('mainContent'));
+    showToast('分类已添加','success');
+}
+
+function removeCategory(ci){
+    const cats = siteData.productCategories;
+    if(!confirm('确定删除分类 "'+cats[ci].zh?.name+'" ?\n该分类下的产品不会被删除，但会变为"无分类"状态。')) return;
+    const catId = cats[ci].id;
+    siteData.products.forEach(p => { if(p.categoryId === catId) p.categoryId = ''; });
+    cats.splice(ci,1);
+    saveData();
+    renderProducts(document.getElementById('mainContent'));
+    showToast('分类已删除','info');
+}
+
+function moveCategory(ci, dir){
+    const cats = siteData.productCategories;
+    const ni = ci + dir;
+    if(ni < 0 || ni >= cats.length) return;
+    [cats[ci], cats[ni]] = [cats[ni], cats[ci]];
+    saveData();
+    renderProducts(document.getElementById('mainContent'));
+}
+
+function toggleCategoryBody(ci){
+    const body = document.getElementById('catBody_'+ci);
+    if(body) body.classList.toggle('show');
+}
+
+function editCategory(ci){
+    const cat = siteData.productCategories[ci];
+    const editEl = document.getElementById('catEdit_'+ci);
+    if(!editEl) return;
+    if(editEl.style.display === 'none'){
+        editEl.style.display = 'block';
+        editEl.innerHTML = `<div style="padding:12px;background:var(--bg);border-radius:8px;border:1px solid var(--accent)">`;
+        editEl.innerHTML += `<div class="form-row">`;
+        editEl.innerHTML += inputGroup('图标 Class','edit_cat_icon_'+ci, cat.icon || '', null);
+        editEl.innerHTML += inputGroup('中文名称','edit_cat_zh_'+ci, cat.zh?.name || '', 'zh');
+        editEl.innerHTML += inputGroup('英文名称','edit_cat_en_'+ci, cat.en?.name || '', 'en');
+        editEl.innerHTML += `</div><div class="form-row">`;
+        editEl.innerHTML += inputGroup('西语名称','edit_cat_es_'+ci, cat.es?.name || '', 'es');
+        editEl.innerHTML += inputGroup('葡语名称','edit_cat_pt_'+ci, cat.pt?.name || '', 'pt');
+        editEl.innerHTML += `</div><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px"><button class="btn btn-success" onclick="saveCategoryEdit(${ci})" style="font-size:12px;padding:6px 14px"><i class="fas fa-check"></i> 保存</button><button class="btn btn-secondary" onclick="cancelCategoryEdit(${ci})" style="font-size:12px;padding:6px 14px">取消</button></div>`;
+        editEl.innerHTML += `</div>`;
+    } else {
+        editEl.style.display = 'none';
+    }
+}
+
+function cancelCategoryEdit(ci){
+    const editEl = document.getElementById('catEdit_'+ci);
+    if(editEl) editEl.style.display = 'none';
+}
+
+function saveCategoryEdit(ci){
+    const cat = siteData.productCategories[ci];
+    cat.icon = document.getElementById('edit_cat_icon_'+ci)?.value || cat.icon;
+    cat.zh.name = document.getElementById('edit_cat_zh_'+ci)?.value || cat.zh.name;
+    cat.en.name = document.getElementById('edit_cat_en_'+ci)?.value || cat.en.name;
+    cat.es.name = document.getElementById('edit_cat_es_'+ci)?.value || cat.es.name;
+    cat.pt.name = document.getElementById('edit_cat_pt_'+ci)?.value || cat.pt.name;
+    saveData();
+    renderProducts(document.getElementById('mainContent'));
+    showToast('分类已更新','success');
+}
+
 function addProduct(){
     const id = 'product_' + Date.now();
-    siteData.products.push({id:id,icon:'fas fa-star',img:'',
+    siteData.products.push({id:id,icon:'fas fa-star',categoryId:'',img:'',
         zh:{title:'新产品',desc:'产品描述',f1:'特性1',f2:'特性2',f3:'特性3'},
         en:{title:'New Product',desc:'Product description',f1:'Feature 1',f2:'Feature 2',f3:'Feature 3'},
         es:{title:'Nuevo Producto',desc:'Descripción del producto',f1:'Característica 1',f2:'Característica 2',f3:'Característica 3'},
@@ -1933,6 +2113,12 @@ function generateScriptJS(){
 
         // Products
         Object.assign(t[l],{products_title:l==='zh'?'产品中心':l==='en'?'Products':l==='es'?'Productos':'Produtos',products_desc:l==='zh'?'覆盖舞台特效全品类，从火焰到星光，一站式满足你的所有需求':l==='en'?'Complete range of stage effects — from fire to starlight, one-stop solutions for all your needs':l==='es'?'Gama completa de efectos escénicos — del fuego a la luz de las estrellas':'Gama completa de efeitos cênicos — do fogo à luz das estrelas'});
+        // Product category names
+        if(siteData.productCategories){
+            siteData.productCategories.forEach(cat => {
+                t[l]['cat_'+cat.id] = cat[l]?.name || cat.zh?.name || '';
+            });
+        }
         siteData.products.forEach(p=>{
             Object.assign(t[l],{['p_'+p.id+'_title']:p[l].title,['p_'+p.id+'_desc']:p[l].desc,['p_'+p.id+'_f1']:p[l].f1,['p_'+p.id+'_f2']:p[l].f2,['p_'+p.id+'_f3']:p[l].f3});
         });
@@ -2171,6 +2357,47 @@ async function generateIndexHTML(){
             }).join('') +
             `</ul></li>`;
         html = html.replace(/<li><a href="#products" data-i18n="nav_products">[\s\S]*?<\/a><\/li>/, dropdownHTML);
+    }
+
+    // ========== 按分类生成产品网格 ==========
+    const cats = siteData.productCategories || [];
+    if(cats.length > 0){
+        let catGridHTML = '';
+        cats.forEach(cat => {
+            const catProds = siteData.products.filter(p => p.categoryId === cat.id);
+            if(catProds.length === 0) return;
+            catGridHTML += `<div class="product-category-group" data-cat-id="${cat.id}">`;
+            catGridHTML += `<div class="product-category-title"><i class="${cat.icon || 'fas fa-folder'}"></i><span data-i18n="cat_${cat.id}">${cat.zh?.name || ''}</span></div>`;
+            catGridHTML += `<div class="product-grid">`;
+            catProds.forEach(p => {
+                const w = p.imgWidth ? ` width="${p.imgWidth}"` : '';
+                const h = p.imgHeight ? ` height="${p.imgHeight}"` : '';
+                const imgSrc = (p.img && !p.img.startsWith('data:')) ? p.img : '';
+                const imgStyle = imgSrc ? '' : 'display:none';
+                catGridHTML += `<div class="product-card" data-effect="${p.id}"><div class="product-visual"><div class="product-icon-wrap ${p.id}-glow"><i class="${p.icon}"></i></div><img class="product-img" data-product-img="${p.id}" src="${imgSrc}" alt="${p.zh.title}"${w}${h} style="${imgStyle}"></div><div class="product-info"><h3 data-i18n="p_${p.id}_title">${p.zh.title}</h3><p data-i18n="p_${p.id}_desc">${p.zh.desc}</p><ul class="product-features"><li><i class="fas fa-check"></i> <span data-i18n="p_${p.id}_f1">${p.zh.f1}</span></li><li><i class="fas fa-check"></i> <span data-i18n="p_${p.id}_f2">${p.zh.f2}</span></li><li><i class="fas fa-check"></i> <span data-i18n="p_${p.id}_f3">${p.zh.f3}</span></li></ul><a href="#" class="product-link" data-i18n="learn_more">了解更多 <i class="fas fa-arrow-right"></i></a></div></div>`;
+            });
+            catGridHTML += `</div></div>`;
+        });
+        // 未分类产品
+        const uncatProds = siteData.products.filter(p => !p.categoryId || !cats.some(c => c.id === p.categoryId));
+        if(uncatProds.length > 0){
+            catGridHTML += `<div class="product-category-group" data-cat-id="">`;
+            catGridHTML += `<div class="product-category-title"><i class="fas fa-box"></i><span>其他产品</span></div>`;
+            catGridHTML += `<div class="product-grid">`;
+            uncatProds.forEach(p => {
+                const imgSrc = (p.img && !p.img.startsWith('data:')) ? p.img : '';
+                const imgStyle = imgSrc ? '' : 'display:none';
+                catGridHTML += `<div class="product-card" data-effect="${p.id}"><div class="product-visual"><div class="product-icon-wrap ${p.id}-glow"><i class="${p.icon}"></i></div><img class="product-img" data-product-img="${p.id}" src="${imgSrc}" alt="${p.zh.title}" style="${imgStyle}"></div><div class="product-info"><h3 data-i18n="p_${p.id}_title">${p.zh.title}</h3><p data-i18n="p_${p.id}_desc">${p.zh.desc}</p><ul class="product-features"><li><i class="fas fa-check"></i> <span data-i18n="p_${p.id}_f1">${p.zh.f1}</span></li><li><i class="fas fa-check"></i> <span data-i18n="p_${p.id}_f2">${p.zh.f2}</span></li><li><i class="fas fa-check"></i> <span data-i18n="p_${p.id}_f3">${p.zh.f3}</span></li></ul><a href="#" class="product-link" data-i18n="learn_more">了解更多 <i class="fas fa-arrow-right"></i></a></div></div>`;
+            });
+            catGridHTML += `</div></div>`;
+        }
+        // 替换产品网格区域：从第一个 product-grid 到 solutions section 之前
+        const gridStart = html.indexOf('<div class="product-grid">');
+        const sectionEnd = html.indexOf('</section>', gridStart);
+        const solutionsComment = html.indexOf('<!-- 解决方案 -->', sectionEnd);
+        if(gridStart !== -1 && solutionsComment !== -1){
+            html = html.substring(0, gridStart) + catGridHTML + `</div></section>\n\n    <!-- 解决方案 -->` + html.substring(solutionsComment + '<!-- 解决方案 -->'.length);
+        }
     }
 
     // Update navbar logo
