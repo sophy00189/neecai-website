@@ -10,6 +10,12 @@ document.addEventListener('DOMContentLoaded', () => {
         "nav_about": "关于我们",
         "nav_contact": "联系我们",
         "nav_quote": "获取报价",
+        "dd_item_0": "火焰特效",
+        "dd_item_1": "火花特效",
+        "dd_item_2": "烟雾特效",
+        "dd_item_3": "彩花特效",
+        "dd_item_4": "智能灯光",
+        "dd_item_5": "全息投影",
         "hero_badge": "行业领先的舞台特效解决方案",
         "hero_t1": "点亮每一场",
         "hero_t2": "震撼演出",
@@ -218,6 +224,12 @@ document.addEventListener('DOMContentLoaded', () => {
         "nav_about": "About",
         "nav_contact": "Contact",
         "nav_quote": "Get Quote",
+        "dd_item_0": "Fire Effects",
+        "dd_item_1": "Spark Effects",
+        "dd_item_2": "Smoke Effects",
+        "dd_item_3": "Confetti Effects",
+        "dd_item_4": "Intelligent Lighting",
+        "dd_item_5": "Holographic Projection",
         "hero_badge": "Industry-Leading Stage Effects Solutions",
         "hero_t1": "Ignite Every",
         "hero_t2": "Spectacular Show",
@@ -426,6 +438,12 @@ document.addEventListener('DOMContentLoaded', () => {
         "nav_about": "Nosotros",
         "nav_contact": "Contacto",
         "nav_quote": "Cotizar",
+        "dd_item_0": "Efectos de Fuego",
+        "dd_item_1": "Efectos de Chispas",
+        "dd_item_2": "Efectos de Humo",
+        "dd_item_3": "Efectos de Confeti",
+        "dd_item_4": "Iluminación Inteligente",
+        "dd_item_5": "Proyección Holográfica",
         "hero_badge": "Soluciones de Efectos Escénicos Líderes en la Industria",
         "hero_t1": "Enciende Cada",
         "hero_t2": "Espectáculo Espectacular",
@@ -633,6 +651,12 @@ document.addEventListener('DOMContentLoaded', () => {
         "nav_about": "Sobre",
         "nav_contact": "Contato",
         "nav_quote": "Orçamento",
+        "dd_item_0": "Efeitos de Fogo",
+        "dd_item_1": "Efeitos de Faíscas",
+        "dd_item_2": "Efeitos de Fumaça",
+        "dd_item_3": "Efeitos de Confete",
+        "dd_item_4": "Iluminação Inteligente",
+        "dd_item_5": "Projeção Holográfica",
         "hero_badge": "Soluções de Efeitos Cênicos Líderes na Indústria",
         "hero_t1": "Acenda Cada",
         "hero_t2": "Espetáculo Espetacular",
@@ -886,6 +910,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ========== 鼠标跟随 ==========
     const heroSection = document.querySelector('.hero');if(heroSection){heroSection.addEventListener('mousemove', e => {const x=e.clientX/window.innerWidth, y=e.clientY/window.innerHeight;heroSection.querySelectorAll('.light-beam').forEach((beam, i) => {beam.style.transform='translate('+((x-0.5)*10*(i+1))+'px, '+((y-0.5)*5*(i+1))+'px) rotate('+((x-0.5)*20)+'deg)';});});}
+
+    // ========== 产品下拉菜单 ==========
+    const hasDropdown = document.querySelector('.has-dropdown');
+    const dropdownMenu = document.getElementById('productDropdown');
+    if(hasDropdown && dropdownMenu){
+        let ddTimer;
+        hasDropdown.addEventListener('mouseenter', () => { clearTimeout(ddTimer); dropdownMenu.classList.add('show'); });
+        hasDropdown.addEventListener('mouseleave', () => { ddTimer = setTimeout(() => dropdownMenu.classList.remove('show'), 150); });
+        // 移动端：点击切换
+        hasDropdown.querySelector('a')?.addEventListener('click', function(e) {
+            if(window.innerWidth <= 768) { e.preventDefault(); dropdownMenu.classList.toggle('show'); }
+        });
+    }
+    document.addEventListener('click', e => { if(dropdownMenu && !e.target.closest('.has-dropdown')) dropdownMenu.classList.remove('show'); });
 
     // ========== 平滑滚动 ==========
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {anchor.addEventListener('click', function(e) {e.preventDefault();const target=document.querySelector(this.getAttribute('href'));if(target) window.scrollTo({top:target.offsetTop-80,behavior:'smooth'});});});
