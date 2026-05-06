@@ -98,6 +98,28 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC
 .login-box .btn{width:100%;justify-content:center;padding:12px;font-size:15px;margin-top:8px}
 .login-error{color:var(--red);font-size:13px;margin-top:10px;display:none}
 @media(max-width:768px){.layout{flex-direction:column}.sidebar{width:100%;display:flex;overflow-x:auto;padding:8px}.nav-item{padding:8px 14px;white-space:nowrap;border-left:none;border-bottom:2px solid transparent}.nav-item.active{border-bottom-color:var(--accent);border-left-color:transparent}.form-row,.form-row-4{grid-template-columns:1fr}}
+/* 产品下拉目录管理 */
+.dropdown-toggle{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:14px;color:var(--text);margin-bottom:12px}
+.dropdown-toggle:hover{border-color:var(--accent)}
+.dropdown-toggle i{color:var(--text3);transition:transform .2s}
+.dropdown-toggle.open i{transform:rotate(180deg)}
+.dropdown-list{display:none;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:12px}
+.dropdown-list.show{display:block}
+.dropdown-item{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--bg);transition:background .2s}
+.dropdown-item:last-child{border-bottom:none}
+.dropdown-item:hover{background:rgba(255,107,53,.06)}
+.dropdown-item .drag-handle{color:var(--text3);cursor:grab;font-size:14px;min-width:20px}
+.dropdown-item .item-icon{color:var(--accent);font-size:14px;min-width:20px}
+.dropdown-item .item-info{flex:1;display:flex;flex-direction:column;gap:2px}
+.dropdown-item .item-info span{font-size:14px;color:var(--text)}
+.dropdown-item .item-info small{font-size:11px;color:var(--text3)}
+.dropdown-item .item-actions{display:flex;gap:6px}
+.dropdown-item .btn-icon{width:30px;height:30px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--text3);cursor:pointer;font-size:12px;transition:all .2s}
+.dropdown-item .btn-icon:hover{background:var(--bg3);color:var(--text)}
+.dropdown-item .btn-icon.delete:hover{background:rgba(239,68,68,.15);color:var(--red);border-color:var(--red)}
+.dropdown-item-edit{display:none;padding:16px;background:var(--bg);border-bottom:1px solid var(--border)}
+.dropdown-item-edit.show{display:block}
+.dropdown-empty{text-align:center;padding:30px;color:var(--text3);font-size:14px}
 </style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
@@ -251,6 +273,15 @@ const DEFAULT_DATA = {
         logo_icon:'fas fa-bolt',
         logo_text:'Neecai',
         logo_img:'',
+        productDropdownEnabled: true,
+        productDropdown: [
+            {id:'fire',icon:'fas fa-fire',href:'#products',zh:{label:'火焰特效'},en:{label:'Fire Effects'},es:{label:'Efectos de Fuego'},pt:{label:'Efeitos de Fogo'}},
+            {id:'spark',icon:'fas fa-star-half-alt',href:'#products',zh:{label:'火花特效'},en:{label:'Spark Effects'},es:{label:'Efectos de Chispas'},pt:{label:'Efeitos de Faíscas'}},
+            {id:'smoke',icon:'fas fa-cloud',href:'#products',zh:{label:'烟雾特效'},en:{label:'Smoke Effects'},es:{label:'Efectos de Humo'},pt:{label:'Efeitos de Fumaça'}},
+            {id:'confetti',icon:'fas fa-gift',href:'#products',zh:{label:'彩花特效'},en:{label:'Confetti Effects'},es:{label:'Efectos de Confeti'},pt:{label:'Efeitos de Confete'}},
+            {id:'light',icon:'fas fa-lightbulb',href:'#products',zh:{label:'智能灯光'},en:{label:'Intelligent Lighting'},es:{label:'Iluminación Inteligente'},pt:{label:'Iluminação Inteligente'}},
+            {id:'holo',icon:'fas fa-cube',href:'#products',zh:{label:'全息投影'},en:{label:'Holographic Projection'},es:{label:'Proyección Holográfica'},pt:{label:'Projeção Holográfica'}}
+        ],
         zh:{logo_sub:'霓彩',nav_home:'首页',nav_products:'产品中心',nav_solutions:'解决方案',nav_cases:'经典案例',nav_about:'关于我们',nav_contact:'联系我们',nav_quote:'获取报价'},
         en:{logo_sub:'Neecai',nav_home:'Home',nav_products:'Products',nav_solutions:'Solutions',nav_cases:'Portfolio',nav_about:'About',nav_contact:'Contact',nav_quote:'Get Quote'},
         es:{logo_sub:'Neecai',nav_home:'Inicio',nav_products:'Productos',nav_solutions:'Soluciones',nav_cases:'Portafolio',nav_about:'Nosotros',nav_contact:'Contacto',nav_quote:'Cotizar'},
@@ -319,6 +350,8 @@ function loadData(){
         if(!siteData.popup) siteData.popup = defaults.popup;
         if(!siteData.navbar) siteData.navbar = defaults.navbar;
         if(!siteData.form.product_options) siteData.form.product_options = defaults.form.product_options;
+        if(siteData.navbar.productDropdownEnabled === undefined) siteData.navbar.productDropdownEnabled = true;
+        if(!siteData.navbar.productDropdown) siteData.navbar.productDropdown = defaults.navbar.productDropdown;
     } else {
         siteData = defaults;
     }
@@ -1108,6 +1141,24 @@ function renderNavbar(main){
     });
     html += `</div></div>`;
     
+    // 产品下拉目录设置
+    const pdEnabled = siteData.navbar.productDropdownEnabled !== false;
+    const pdItems = siteData.navbar.productDropdown || [];
+    html += `<div class="card"><div class="card-header" onclick="toggleCard(this)"><h3><i class="fas fa-chevron-down"></i> 产品下拉目录</h3><span class="card-toggle">展开/收起</span></div><div class="card-body">`;
+    html += `<div class="form-group"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;color:var(--text)"><input type="checkbox" id="nb_pd_enabled" ${pdEnabled?'checked':''} onchange="siteData.navbar.productDropdownEnabled=this.checked;autoSave()" style="width:16px;height:16px;accent-color:var(--accent)"> 启用产品下拉目录（鼠标悬停显示）</label></div>`;
+    html += `<div id="dropdownManager">`;
+    html += `<div class="dropdown-list ${pdEnabled?'show':''}" id="dropdownList">`;
+    if(pdItems.length === 0){
+        html += `<div class="dropdown-empty"><i class="fas fa-inbox" style="font-size:24px;margin-bottom:8px;display:block"></i>暂无目录项，点击下方按钮添加</div>`;
+    } else {
+        pdItems.forEach((item, di) => {
+            html += renderDropdownItem(item, di);
+        });
+    }
+    html += `</div>`;
+    html += `<button class="btn btn-primary" onclick="addDropdownItem()" style="width:100%;justify-content:center;margin-top:8px"><i class="fas fa-plus"></i> 添加目录项</button>`;
+    html += `</div></div></div>`;
+
     html += `<button class="btn btn-success" onclick="saveNavbar()"><i class="fas fa-save"></i> 保存导航栏</button></div>`;
     main.innerHTML = html;
 }
@@ -1134,8 +1185,85 @@ function removeLogoImg(){
     showToast('Logo 图片已删除','success');
 }
 
+// ========== 产品下拉目录管理函数 ==========
+function renderDropdownItem(item, idx){
+    let h = `<div class="dropdown-item" data-idx="${idx}">`;
+    h += `<i class="fas fa-grip-vertical drag-handle"></i>`;
+    h += `<i class="${item.icon || 'fas fa-link'} item-icon"></i>`;
+    h += `<div class="item-info"><span>${item.zh?.label || '未命名'}</span><small>${item.en?.label || ''} · ${item.href || '#'}</small></div>`;
+    h += `<div class="item-actions"><button class="btn-icon" onclick="editDropdownItem(${idx})" title="编辑"><i class="fas fa-pen"></i></button><button class="btn-icon" onclick="moveDropdownItem(${idx},-1)" title="上移"><i class="fas fa-arrow-up"></i></button><button class="btn-icon" onclick="moveDropdownItem(${idx},1)" title="下移"><i class="fas fa-arrow-down"></i></button><button class="btn-icon delete" onclick="removeDropdownItem(${idx})" title="删除"><i class="fas fa-trash"></i></button></div>`;
+    h += `</div>`;
+    h += `<div class="dropdown-item-edit" id="dropdownEdit_${idx}">`;
+    h += `<div class="form-row">`;
+    h += `<div class="form-group"><label>图标 Class</label><input type="text" id="dd_icon_${idx}" value="${item.icon || ''}" placeholder="fas fa-fire"></div>`;
+    h += `<div class="form-group"><label>链接</label><input type="text" id="dd_href_${idx}" value="${item.href || '#products'}" placeholder="#products"></div>`;
+    h += `</div>`;
+    h += `<div class="form-row">`;
+    h += `<div class="form-group"><label>中文名称</label><input type="text" id="dd_zh_${idx}" value="${item.zh?.label || ''}" placeholder="火焰特效"></div>`;
+    h += `<div class="form-group"><label>英文名称</label><input type="text" id="dd_en_${idx}" value="${item.en?.label || ''}" placeholder="Fire Effects"></div>`;
+    h += `</div>`;
+    h += `<div class="form-row">`;
+    h += `<div class="form-group"><label>西语名称</label><input type="text" id="dd_es_${idx}" value="${item.es?.label || ''}" placeholder="Efectos de Fuego"></div>`;
+    h += `<div class="form-group"><label>葡语名称</label><input type="text" id="dd_pt_${idx}" value="${item.pt?.label || ''}" placeholder="Efeitos de Fogo"></div>`;
+    h += `</div>`;
+    h += `<div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn btn-success" onclick="saveDropdownItem(${idx})" style="font-size:12px;padding:6px 14px"><i class="fas fa-check"></i> 确定</button><button class="btn btn-secondary" onclick="cancelDropdownItem(${idx})" style="font-size:12px;padding:6px 14px">取消</button></div>`;
+    h += `</div>`;
+    return h;
+}
+
+function addDropdownItem(){
+    if(!siteData.navbar.productDropdown) siteData.navbar.productDropdown = [];
+    const id = 'dd_' + Date.now();
+    siteData.navbar.productDropdown.push({id:id,icon:'fas fa-link',href:'#products',zh:{label:'新目录项'},en:{label:'New Item'},es:{label:'Nuevo'},pt:{label:'Novo'}});
+    saveData();
+    renderNavbar(document.getElementById('mainContent'));
+    showToast('已添加新目录项','success');
+}
+
+function removeDropdownItem(idx){
+    if(!confirm('确定删除该目录项？')) return;
+    siteData.navbar.productDropdown.splice(idx,1);
+    saveData();
+    renderNavbar(document.getElementById('mainContent'));
+    showToast('目录项已删除','info');
+}
+
+function moveDropdownItem(idx, dir){
+    const items = siteData.navbar.productDropdown;
+    const newIdx = idx + dir;
+    if(newIdx < 0 || newIdx >= items.length) return;
+    [items[idx], items[newIdx]] = [items[newIdx], items[idx]];
+    saveData();
+    renderNavbar(document.getElementById('mainContent'));
+}
+
+function editDropdownItem(idx){
+    document.querySelectorAll('.dropdown-item-edit').forEach(el => el.classList.remove('show'));
+    const editEl = document.getElementById('dropdownEdit_' + idx);
+    if(editEl) editEl.classList.add('show');
+}
+
+function cancelDropdownItem(idx){
+    const editEl = document.getElementById('dropdownEdit_' + idx);
+    if(editEl) editEl.classList.remove('show');
+}
+
+function saveDropdownItem(idx){
+    const item = siteData.navbar.productDropdown[idx];
+    item.icon = document.getElementById('dd_icon_' + idx)?.value || item.icon;
+    item.href = document.getElementById('dd_href_' + idx)?.value || item.href;
+    item.zh = item.zh || {}; item.zh.label = document.getElementById('dd_zh_' + idx)?.value || item.zh.label;
+    item.en = item.en || {}; item.en.label = document.getElementById('dd_en_' + idx)?.value || item.en.label;
+    item.es = item.es || {}; item.es.label = document.getElementById('dd_es_' + idx)?.value || item.es.label;
+    item.pt = item.pt || {}; item.pt.label = document.getElementById('dd_pt_' + idx)?.value || item.pt.label;
+    saveData();
+    renderNavbar(document.getElementById('mainContent'));
+    showToast('目录项已保存','success');
+}
+
 function collectNavbar(){
     const n = siteData.navbar;
+    n.productDropdownEnabled = document.getElementById('nb_pd_enabled')?.checked !== false;
     n.logo_icon = document.getElementById('nb_logo_icon')?.value || n.logo_icon;
     n.logo_text = document.getElementById('nb_logo_text')?.value || n.logo_text;
     LANGS.forEach(l=>{
@@ -1790,6 +1918,12 @@ function generateScriptJS(){
         // 通用导航
         const nb = siteData.navbar[l];
         Object.assign(t[l],{logo_sub:nb.logo_sub,nav_home:nb.nav_home,nav_products:nb.nav_products,nav_solutions:nb.nav_solutions,nav_cases:nb.nav_cases,nav_about:nb.nav_about,nav_contact:nb.nav_contact,nav_quote:nb.nav_quote});
+        // 产品下拉目录翻译
+        if(siteData.navbar.productDropdownEnabled !== false && siteData.navbar.productDropdown){
+            siteData.navbar.productDropdown.forEach((item,di) => {
+                t[l]['dd_item_'+di] = item[l]?.label || '';
+            });
+        }
 
         // Hero
         const h = siteData.hero[l];
@@ -1954,6 +2088,20 @@ function getJSLogic(){
     // ========== 鼠标跟随 ==========
     const heroSection = document.querySelector('.hero');if(heroSection){heroSection.addEventListener('mousemove', e => {const x=e.clientX/window.innerWidth, y=e.clientY/window.innerHeight;heroSection.querySelectorAll('.light-beam').forEach((beam, i) => {beam.style.transform='translate('+((x-0.5)*10*(i+1))+'px, '+((y-0.5)*5*(i+1))+'px) rotate('+((x-0.5)*20)+'deg)';});});}
 
+    // ========== 产品下拉菜单 ==========
+    const hasDropdown = document.querySelector('.has-dropdown');
+    const dropdownMenu = document.getElementById('productDropdown');
+    if(hasDropdown && dropdownMenu){
+        let ddTimer;
+        hasDropdown.addEventListener('mouseenter', () => { clearTimeout(ddTimer); dropdownMenu.classList.add('show'); });
+        hasDropdown.addEventListener('mouseleave', () => { ddTimer = setTimeout(() => dropdownMenu.classList.remove('show'), 150); });
+        // 移动端：点击切换
+        hasDropdown.querySelector('a')?.addEventListener('click', function(e) {
+            if(window.innerWidth <= 768) { e.preventDefault(); dropdownMenu.classList.toggle('show'); }
+        });
+    }
+    document.addEventListener('click', e => { if(dropdownMenu && !e.target.closest('.has-dropdown')) dropdownMenu.classList.remove('show'); });
+
     // ========== 平滑滚动 ==========
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {anchor.addEventListener('click', function(e) {e.preventDefault();const target=document.querySelector(this.getAttribute('href'));if(target) window.scrollTo({top:target.offsetTop-80,behavior:'smooth'});});});
 `;
@@ -2011,8 +2159,21 @@ async function generateIndexHTML(){
         html = html.replace(/(<h4>WhatsApp<\/h4>\s*<p>)([\s\S]*?)(<\/p>)/, `$1${siteData.contact.whatsapp}$3`);
     }
 
-    // Update navbar logo
+    // Update product dropdown menu in navbar
     const nb = siteData.navbar;
+    if(nb.productDropdownEnabled !== false && nb.productDropdown && nb.productDropdown.length > 0){
+        const pdItems = nb.productDropdown;
+        // Build dropdown HTML: replace <li><a href="#products" data-i18n="nav_products">...</a></li>
+        const dropdownHTML = `<li class="has-dropdown"><a href="#products" data-i18n="nav_products">${nb.zh.nav_products || '\u4ea7\u54c1\u4e2d\u5fc3'} <i class="fas fa-chevron-down" style="font-size:10px;margin-left:4px"></i></a><ul class="dropdown-menu" id="productDropdown">` +
+            pdItems.map((item, di) => {
+                const iconHtml = item.icon ? `<i class="${item.icon}" style="margin-right:8px;opacity:.7"></i>` : '';
+                return `<li><a href="${item.href || '#products'}" data-i18n="dd_item_${di}">${iconHtml}${item.zh?.label || ''}</a></li>`;
+            }).join('') +
+            `</ul></li>`;
+        html = html.replace(/<li><a href="#products" data-i18n="nav_products">[\s\S]*?<\/a><\/li>/, dropdownHTML);
+    }
+
+    // Update navbar logo
     // Logo 图片：替换文字区域（Neecai霓彩）为图片
     if(nb.logo_img && !nb.logo_img.startsWith('data:')){
         html = html.replace(/<span class="logo-text">[^<]*<span class="logo-accent"[^<]*<\/span><\/span>/g,
