@@ -228,6 +228,11 @@ img { max-width: 100%; display: block; }
     border-left: 1px solid var(--border-color);
 }
 
+.has-dropdown:hover > .dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+}
 .dropdown-menu.show {
     opacity: 1;
     visibility: visible;
@@ -278,6 +283,14 @@ img { max-width: 100%; display: block; }
     }
     .dropdown-menu::before {
         display: none;
+    }
+    .has-dropdown:hover > .dropdown-menu,
+    .has-dropdown.active > .dropdown-menu {
+        opacity: 1;
+        visibility: visible;
+        max-height: 500px;
+        padding: 4px 0 4px 16px;
+        display: block;
     }
     .dropdown-menu.show {
         opacity: 1;
