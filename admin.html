@@ -1347,26 +1347,30 @@ function renderProducts(main){
             html += `<div class="category-header" onclick="toggleCategoryBody(${ci})">`;
             html += `<div class="cat-info"><i class="${cat.icon || 'fas fa-folder'} cat-icon"></i><span class="cat-name">${cat.zh?.name || '未命名'}</span><span class="cat-count">(${catProducts.length}个产品)</span></div>`;
             html += `<div class="cat-actions" onclick="event.stopPropagation()">`;
-            html += `<button class="btn-icon" onclick="editCategory(${ci})" title="编辑"><i class="fas fa-pen"></i></button>`;
+            html += `<button class="btn-icon" onclick="editCategory(${ci})" title="编辑分类"><i class="fas fa-pen"></i></button>`;
             html += `<button class="btn-icon" onclick="moveCategory(${ci},-1)" title="上移"><i class="fas fa-arrow-up"></i></button>`;
             html += `<button class="btn-icon" onclick="moveCategory(${ci},1)" title="下移"><i class="fas fa-arrow-down"></i></button>`;
-            html += `<button class="btn-icon delete" onclick="removeCategory(${ci})" title="删除"><i class="fas fa-trash"></i></button>`;
+            html += `<button class="btn-icon delete" onclick="removeCategory(${ci})" title="删除分类"><i class="fas fa-trash"></i></button>`;
             html += `</div></div>`;
             html += `<div class="category-body" id="catBody_${ci}">`;
             html += `<div id="catEdit_${ci}" style="display:none"></div>`;
             if(catProducts.length > 0){
                 html += `<div class="sub-products">`;
                 catProducts.forEach(p => {
+                    const prodIdx = siteData.products.indexOf(p);
                     html += `<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg2);border-radius:6px;margin-bottom:6px;border:1px solid var(--border)">`;
                     html += `<i class="${p.icon || 'fas fa-box'}" style="color:var(--accent);font-size:13px"></i>`;
                     html += `<span style="flex:1;font-size:13px;color:var(--text)">${p.zh.title}</span>`;
-                    html += `<span style="font-size:11px;color:var(--text3)">ID: ${p.id}</span>`;
+                    html += `<span style="font-size:11px;color:var(--text3);margin-right:4px">ID: ${p.id}</span>`;
+                    html += `<button class="btn-icon" onclick="editProductFromCat(${prodIdx})" title="编辑产品" style="width:26px;height:26px;font-size:10px"><i class="fas fa-pen"></i></button>`;
+                    html += `<button class="btn-icon delete" onclick="removeProduct(${prodIdx})" title="删除产品" style="width:26px;height:26px;font-size:10px"><i class="fas fa-trash"></i></button>`;
                     html += `</div>`;
                 });
                 html += `</div>`;
             } else {
-                html += `<p style="padding:8px 12px;font-size:13px;color:var(--text3)">该分类下暂无产品</p>`;
+                html += `<p style="padding:8px 12px;font-size:13px;color:var(--text3)">该分类下暂无产品，点击下方按钮添加</p>`;
             }
+            html += `<button class="btn btn-primary" onclick="addProductToCategory('${cat.id}')" style="font-size:12px;padding:6px 14px;margin-top:8px"><i class="fas fa-plus"></i> 在此分类下添加产品</button>`;
             html += `</div></div>`;
         });
     }
@@ -1504,6 +1508,44 @@ function addProduct(){
     saveData();
     renderProducts(document.getElementById('mainContent'));
     showToast('已添加新产品','success');
+}
+
+function addProductToCategory(catId){
+    const id = 'product_' + Date.now();
+    siteData.products.push({id:id,icon:'fas fa-star',categoryId:catId,img:'',
+        zh:{title:'新产品',desc:'产品描述',f1:'特性1',f2:'特性2',f3:'特性3'},
+        en:{title:'New Product',desc:'Product description',f1:'Feature 1',f2:'Feature 2',f3:'Feature 3'},
+        es:{title:'Nuevo Producto',desc:'Descripción del producto',f1:'Característica 1',f2:'Característica 2',f3:'Característica 3'},
+        pt:{title:'Novo Produto',desc:'Descrição do produto',f1:'Característica 1',f2:'Característica 2',f3:'Característica 3'}
+    });
+    saveData();
+    renderProducts(document.getElementById('mainContent'));
+    // 展开对应的分类
+    const catIdx = (siteData.productCategories || []).findIndex(c => c.id === catId);
+    if(catIdx >= 0){
+        setTimeout(function(){ toggleCategoryBody(catIdx); }, 100);
+    }
+    showToast('已添加新产品到该分类','success');
+}
+
+function editProductFromCat(prodIdx){
+    // 滚动到下方产品列表管理区，并展开对应的产品卡片
+    const cards = document.querySelectorAll('#mainContent .card .card .card-header');
+    if(cards[prodIdx]){
+        cards[prodIdx].scrollIntoView({behavior:'smooth',block:'center'});
+        if(cards[prodIdx].nextElementSibling && !cards[prodIdx].nextElementSibling.classList.contains('show')){
+            // card-body 默认显示所以不需要 toggle，但如果被收起了则展开
+        }
+        // 高亮闪烁提示
+        const card = cards[prodIdx].closest('.card');
+        if(card){
+            card.style.borderColor = 'var(--accent)';
+            card.style.boxShadow = '0 0 12px rgba(255,107,53,.3)';
+            setTimeout(function(){ card.style.borderColor = ''; card.style.boxShadow = ''; }, 2000);
+        }
+    } else {
+        showToast('请在下方「产品列表管理」中编辑该产品','info');
+    }
 }
 
 function removeProduct(i){
