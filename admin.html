@@ -2113,16 +2113,20 @@ function generateScriptJS(){
 
         // Products
         Object.assign(t[l],{products_title:l==='zh'?'产品中心':l==='en'?'Products':l==='es'?'Productos':'Produtos',products_desc:l==='zh'?'覆盖舞台特效全品类，从火焰到星光，一站式满足你的所有需求':l==='en'?'Complete range of stage effects — from fire to starlight, one-stop solutions for all your needs':l==='es'?'Gama completa de efectos escénicos — del fuego a la luz de las estrellas':'Gama completa de efeitos cênicos — do fogo à luz das estrelas'});
-        // Product category names
+        // Product category names (sidebar + dropdown)
         if(siteData.productCategories){
             siteData.productCategories.forEach(cat => {
                 t[l]['cat_'+cat.id] = cat[l]?.name || cat.zh?.name || '';
+                t[l]['ddcat_'+cat.id] = cat[l]?.name || cat.zh?.name || '';
             });
         }
         siteData.products.forEach(p=>{
             Object.assign(t[l],{['p_'+p.id+'_title']:p[l].title,['p_'+p.id+'_desc']:p[l].desc,['p_'+p.id+'_f1']:p[l].f1,['p_'+p.id+'_f2']:p[l].f2,['p_'+p.id+'_f3']:p[l].f3});
+            t[l]['ddp_'+p.id] = p[l]?.title || p.zh?.title || '';
         });
         t[l].learn_more = l==='zh'?'了解更多':l==='en'?'Learn More':l==='es'?'Más Información':'Saiba Mais';
+        t[l].prod_nav_all = l==='zh'?'全部产品':l==='en'?'All Products':l==='es'?'Todos los Productos':'Todos os Produtos';
+        t[l].prod_cat_all = l==='zh'?'全部':l==='en'?'All':l==='es'?'Todos':'Todos';
 
         // Solutions
         Object.assign(t[l],{solutions_title:l==='zh'?'解决方案':l==='en'?'Solutions':l==='es'?'Soluciones':'Soluções',solutions_desc:l==='zh'?'针对不同场景，提供定制化特效方案，让每一场活动都成为经典':l==='en'?'Customized effects solutions for every scenario, making every event a classic':l==='es'?'Soluciones de efectos personalizadas para cada escenario':'Soluções de efeitos personalizadas para cada cenário'});
@@ -2274,6 +2278,24 @@ function getJSLogic(){
     // ========== 鼠标跟随 ==========
     const heroSection = document.querySelector('.hero');if(heroSection){heroSection.addEventListener('mousemove', e => {const x=e.clientX/window.innerWidth, y=e.clientY/window.innerHeight;heroSection.querySelectorAll('.light-beam').forEach((beam, i) => {beam.style.transform='translate('+((x-0.5)*10*(i+1))+'px, '+((y-0.5)*5*(i+1))+'px) rotate('+((x-0.5)*20)+'deg)';});});}
 
+    // ========== 产品分类筛选 ==========
+    function filterProducts(catId, btn){
+        const cards = document.querySelectorAll('.product-card');
+        const links = document.querySelectorAll('.product-cat-link');
+        links.forEach(l => l.classList.remove('active'));
+        if(btn){btn.classList.add('active');}else{document.querySelector('.product-cat-link[data-filter-cat="all"]')?.classList.add('active');}
+        cards.forEach(card => {
+            if(catId === 'all' || card.dataset.catId === catId){
+                card.style.display = '';
+                setTimeout(()=>{card.style.opacity='1';card.style.transform='translateY(0)';},10);
+            } else {
+                card.style.opacity='0';card.style.transform='translateY(20px)';
+                setTimeout(()=>{card.style.display='none';},300);
+            }
+        });
+    }
+    window.filterProducts = filterProducts;
+
     // ========== 产品下拉菜单 ==========
     const hasDropdown = document.querySelector('.has-dropdown');
     const dropdownMenu = document.getElementById('productDropdown');
@@ -2345,11 +2367,30 @@ async function generateIndexHTML(){
         html = html.replace(/(<h4>WhatsApp<\/h4>\s*<p>)([\s\S]*?)(<\/p>)/, `$1${siteData.contact.whatsapp}$3`);
     }
 
-    // Update product dropdown menu in navbar
+    // Update product dropdown menu in navbar (mega dropdown with categories)
     const nb = siteData.navbar;
-    if(nb.productDropdownEnabled !== false && nb.productDropdown && nb.productDropdown.length > 0){
+    const productCats = siteData.productCategories || [];
+    if(nb.productDropdownEnabled !== false && productCats.length > 0){
+        let megaItems = '';
+        productCats.forEach(cat => {
+            const catProds = siteData.products.filter(p => p.categoryId === cat.id);
+            if(catProds.length === 0) return;
+            megaItems += `<div class="dd-cat-group">`;
+            megaItems += `<div class="dd-cat-label"><i class="${cat.icon || 'fas fa-folder'}"></i> <span data-i18n="ddcat_${cat.id}">${cat.zh?.name || ''}</span></div>`;
+            catProds.forEach(p => {
+                megaItems += `<li><a href="#products" onclick="setTimeout(function(){filterProducts('${cat.id}')},300)"><i class="${p.icon}" style="margin-right:8px;opacity:.7"></i><span data-i18n="ddp_${p.id}">${p.zh?.title || ''}</span></a></li>`;
+            });
+            megaItems += `</div>`;
+        });
+        const dropdownHTML = `<li class="has-dropdown"><a href="#products" data-i18n="nav_products">${nb.zh.nav_products || '\u4ea7\u54c1\u4e2d\u5fc3'} <i class="fas fa-chevron-down" style="font-size:10px;margin-left:4px"></i></a><ul class="dropdown-menu mega-dropdown" id="productDropdown">${megaItems}</ul></li>`;
+        html = html.replace(/<li class="has-dropdown"><a href="#products"[\s\S]*?<\/ul><\/li>/, dropdownHTML);
+        // Fallback: if the mega dropdown regex didn't match (e.g. old format), try simpler pattern
+        if(html.indexOf('mega-dropdown') === -1){
+            html = html.replace(/<li><a href="#products" data-i18n="nav_products">[\s\S]*?<\/a><\/li>/, dropdownHTML);
+        }
+    } else if(nb.productDropdownEnabled !== false && nb.productDropdown && nb.productDropdown.length > 0){
+        // Fallback: use old flat dropdown format
         const pdItems = nb.productDropdown;
-        // Build dropdown HTML: replace <li><a href="#products" data-i18n="nav_products">...</a></li>
         const dropdownHTML = `<li class="has-dropdown"><a href="#products" data-i18n="nav_products">${nb.zh.nav_products || '\u4ea7\u54c1\u4e2d\u5fc3'} <i class="fas fa-chevron-down" style="font-size:10px;margin-left:4px"></i></a><ul class="dropdown-menu" id="productDropdown">` +
             pdItems.map((item, di) => {
                 const iconHtml = item.icon ? `<i class="${item.icon}" style="margin-right:8px;opacity:.7"></i>` : '';
@@ -2359,38 +2400,34 @@ async function generateIndexHTML(){
         html = html.replace(/<li><a href="#products" data-i18n="nav_products">[\s\S]*?<\/a><\/li>/, dropdownHTML);
     }
 
-    // ========== 按分类生成产品网格 ==========
+    // ========== 按分类生成产品网格 (左侧导航 + 右侧产品网格) ==========
     const cats = siteData.productCategories || [];
     if(cats.length > 0){
-        let catGridHTML = '';
-        cats.forEach(cat => {
-            const catProds = siteData.products.filter(p => p.categoryId === cat.id);
-            if(catProds.length === 0) return;
-            catGridHTML += `<div class="product-category-group" data-cat-id="${cat.id}">`;
-            catGridHTML += `<div class="product-category-title"><i class="${cat.icon || 'fas fa-folder'}"></i><span data-i18n="cat_${cat.id}">${cat.zh?.name || ''}</span></div>`;
-            catGridHTML += `<div class="product-grid">`;
-            catProds.forEach(p => {
-                const w = p.imgWidth ? ` width="${p.imgWidth}"` : '';
-                const h = p.imgHeight ? ` height="${p.imgHeight}"` : '';
-                const imgSrc = (p.img && !p.img.startsWith('data:')) ? p.img : '';
-                const imgStyle = imgSrc ? '' : 'display:none';
-                catGridHTML += `<div class="product-card" data-effect="${p.id}"><div class="product-visual"><div class="product-icon-wrap ${p.id}-glow"><i class="${p.icon}"></i></div><img class="product-img" data-product-img="${p.id}" src="${imgSrc}" alt="${p.zh.title}"${w}${h} style="${imgStyle}"></div><div class="product-info"><h3 data-i18n="p_${p.id}_title">${p.zh.title}</h3><p data-i18n="p_${p.id}_desc">${p.zh.desc}</p><ul class="product-features"><li><i class="fas fa-check"></i> <span data-i18n="p_${p.id}_f1">${p.zh.f1}</span></li><li><i class="fas fa-check"></i> <span data-i18n="p_${p.id}_f2">${p.zh.f2}</span></li><li><i class="fas fa-check"></i> <span data-i18n="p_${p.id}_f3">${p.zh.f3}</span></li></ul><a href="#" class="product-link" data-i18n="learn_more">了解更多 <i class="fas fa-arrow-right"></i></a></div></div>`;
-            });
-            catGridHTML += `</div></div>`;
-        });
-        // 未分类产品
-        const uncatProds = siteData.products.filter(p => !p.categoryId || !cats.some(c => c.id === p.categoryId));
-        if(uncatProds.length > 0){
-            catGridHTML += `<div class="product-category-group" data-cat-id="">`;
-            catGridHTML += `<div class="product-category-title"><i class="fas fa-box"></i><span>其他产品</span></div>`;
-            catGridHTML += `<div class="product-grid">`;
-            uncatProds.forEach(p => {
-                const imgSrc = (p.img && !p.img.startsWith('data:')) ? p.img : '';
-                const imgStyle = imgSrc ? '' : 'display:none';
-                catGridHTML += `<div class="product-card" data-effect="${p.id}"><div class="product-visual"><div class="product-icon-wrap ${p.id}-glow"><i class="${p.icon}"></i></div><img class="product-img" data-product-img="${p.id}" src="${imgSrc}" alt="${p.zh.title}" style="${imgStyle}"></div><div class="product-info"><h3 data-i18n="p_${p.id}_title">${p.zh.title}</h3><p data-i18n="p_${p.id}_desc">${p.zh.desc}</p><ul class="product-features"><li><i class="fas fa-check"></i> <span data-i18n="p_${p.id}_f1">${p.zh.f1}</span></li><li><i class="fas fa-check"></i> <span data-i18n="p_${p.id}_f2">${p.zh.f2}</span></li><li><i class="fas fa-check"></i> <span data-i18n="p_${p.id}_f3">${p.zh.f3}</span></li></ul><a href="#" class="product-link" data-i18n="learn_more">了解更多 <i class="fas fa-arrow-right"></i></a></div></div>`;
-            });
-            catGridHTML += `</div></div>`;
+        // Build product card HTML (reusable)
+        function buildProductCard(p){
+            const w = p.imgWidth ? ` width="${p.imgWidth}"` : '';
+            const h = p.imgHeight ? ` height="${p.imgHeight}"` : '';
+            const imgSrc = (p.img && !p.img.startsWith('data:')) ? p.img : '';
+            const imgStyle = imgSrc ? '' : 'display:none';
+            return `<div class="product-card" data-effect="${p.id}" data-cat-id="${p.categoryId || ''}"><div class="product-visual"><div class="product-icon-wrap ${p.id}-glow"><i class="${p.icon}"></i></div><img class="product-img" data-product-img="${p.id}" src="${imgSrc}" alt="${p.zh.title}"${w}${h} style="${imgStyle}"></div><div class="product-info"><h3 data-i18n="p_${p.id}_title">${p.zh.title}</h3><p data-i18n="p_${p.id}_desc">${p.zh.desc}</p><ul class="product-features"><li><i class="fas fa-check"></i> <span data-i18n="p_${p.id}_f1">${p.zh.f1}</span></li><li><i class="fas fa-check"></i> <span data-i18n="p_${p.id}_f2">${p.zh.f2}</span></li><li><i class="fas fa-check"></i> <span data-i18n="p_${p.id}_f3">${p.zh.f3}</span></li></ul><a href="#" class="product-link" data-i18n="learn_more">\u4e86\u89e3\u66f4\u591a <i class="fas fa-arrow-right"></i></a></div></div>`;
         }
+
+        // Build sidebar navigation HTML
+        let sidebarHTML = `<div class="product-sidebar"><div class="product-sidebar-nav"><div class="product-sidebar-title"><i class="fas fa-th-large"></i> <span data-i18n="prod_nav_all">${siteData.zh?.prod_nav_all || '\u5168\u90e8\u4ea7\u54c1'}</span></div><ul class="product-cat-list">`;
+        sidebarHTML += `<li class="product-cat-item"><button class="product-cat-link active" data-filter-cat="all" onclick="filterProducts('all',this)"><i class="fas fa-border-all cat-icon"></i><span class="cat-label" data-i18n="prod_cat_all">${siteData.zh?.prod_cat_all || '\u5168\u90e8'}</span><span class="cat-count">${siteData.products.length}</span></button></li>`;
+        cats.forEach(cat => {
+            const count = siteData.products.filter(p => p.categoryId === cat.id).length;
+            if(count === 0) return;
+            sidebarHTML += `<li class="product-cat-item"><button class="product-cat-link" data-filter-cat="${cat.id}" onclick="filterProducts('${cat.id}',this)"><i class="${cat.icon || 'fas fa-folder'} cat-icon"></i><span class="cat-label" data-i18n="cat_${cat.id}">${cat.zh?.name || ''}</span><span class="cat-count">${count}</span></button></li>`;
+        });
+        sidebarHTML += `</ul></div></div>`;
+
+        // Build all product cards grid
+        let allCardsHTML = '';
+        siteData.products.forEach(p => { allCardsHTML += buildProductCard(p); });
+
+        let catGridHTML = `<div class="product-layout">` + sidebarHTML + `<div class="product-main"><div class="product-grid">` + allCardsHTML + `</div></div></div>`;
+
         // 替换产品网格区域：从第一个 product-grid 到 solutions section 之前
         const gridStart = html.indexOf('<div class="product-grid">');
         const sectionEnd = html.indexOf('</section>', gridStart);

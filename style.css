@@ -303,6 +303,90 @@ img { max-width: 100%; display: block; }
         padding: 8px 12px;
         font-size: 0.85rem;
     }
+    .dropdown-menu .dd-cat-label {
+        font-size: 0.8rem;
+        padding: 6px 12px 4px;
+    }
+}
+
+/* --- 产品 Mega Dropdown (桌面端) --- */
+@media (min-width: 769px) {
+    .dropdown-menu.mega-dropdown {
+        position: absolute;
+        top: calc(100% + 12px);
+        left: 50%;
+        transform: translateX(-50%) translateY(-8px);
+        min-width: 680px;
+        max-width: 800px;
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        padding: 0;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        z-index: 1000;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(20px);
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0;
+    }
+
+    .dropdown-menu.mega-dropdown::before {
+        content: '';
+        position: absolute;
+        top: -6px;
+        left: 50%;
+        transform: translateX(-50%) rotate(45deg);
+        width: 12px;
+        height: 12px;
+        background: var(--bg-card);
+        border-top: 1px solid var(--border-color);
+        border-left: 1px solid var(--border-color);
+    }
+
+    .dropdown-menu.mega-dropdown.show {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(-50%) translateY(0);
+    }
+
+    .dd-cat-group {
+        padding: 8px;
+        border-right: 1px solid var(--border-color);
+    }
+
+    .dd-cat-group:last-child {
+        border-right: none;
+    }
+
+    .dd-cat-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 12px 6px;
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .dd-cat-label i {
+        color: var(--accent-fire);
+        font-size: 13px;
+    }
+
+    .dd-cat-group .dd-cat-label + a {
+        margin-top: 2px;
+    }
+
+    .dropdown-menu.mega-dropdown li a {
+        padding: 9px 12px;
+        border-radius: var(--radius-sm);
+        font-size: 0.88rem;
+    }
 }
 
 .nav-actions {
@@ -712,33 +796,38 @@ img { max-width: 100%; display: block; }
     z-index: 1;
 }
 
-/* 产品分类标题 */
-.product-category-group { margin-bottom: 48px; }
-.product-category-title {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--text);
-    margin-bottom: 24px;
-    padding-bottom: 12px;
-    border-bottom: 2px solid rgba(255,107,53,0.2);
+.products .container {
+    max-width: 1400px;
 }
-.product-category-title i { color: var(--accent); font-size: 22px; }
-.product-category-group .product-grid { margin-top: 0; }
-.product-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 28px;
-}
+
+/* 产品分类标题 & 左侧导航 + 右侧产品网格布局 */
+.product-layout{display:flex;gap:32px;align-items:flex-start}
+.product-sidebar{width:240px;flex-shrink:0;position:sticky;top:100px}
+.product-sidebar-nav{background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius-lg);overflow:hidden}
+.product-sidebar-title{padding:16px 20px;font-size:15px;font-weight:700;color:var(--text-primary);border-bottom:1px solid var(--border-color);display:flex;align-items:center;gap:8px}
+.product-sidebar-title i{color:var(--accent-fire);font-size:14px}
+.product-cat-list{list-style:none;padding:8px}
+.product-cat-item{margin-bottom:2px}
+.product-cat-link{display:flex;align-items:center;gap:10px;padding:11px 16px;border-radius:var(--radius-sm);color:var(--text-secondary);font-size:0.92rem;font-weight:500;cursor:pointer;transition:all .2s;text-decoration:none;border:none;background:none;width:100%;text-align:left;font-family:inherit}
+.product-cat-link i.cat-icon{color:var(--accent-fire);font-size:14px;width:18px;text-align:center;opacity:.7;transition:opacity .2s}
+.product-cat-link .cat-label{flex:1}
+.product-cat-link .cat-count{font-size:12px;color:var(--text-muted);background:rgba(255,255,255,.04);padding:2px 8px;border-radius:50px}
+.product-cat-link:hover,.product-cat-link.active{background:rgba(255,107,53,.1);color:var(--text-primary)}
+.product-cat-link:hover i.cat-icon,.product-cat-link.active i.cat-icon{opacity:1}
+.product-cat-link.active{color:var(--accent-fire);background:rgba(255,107,53,.12)}
+.product-cat-link.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:20px;background:var(--accent-fire);border-radius:0 3px 3px 0}
+.product-cat-link{position:relative}
+.product-main{flex:1;min-width:0}
+.product-category-title{display:none}
+/* 产品卡片统一样式（不再按分类分组显示，由JS控制显示） */
+.product-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px}
 
 .product-card {
     background: var(--bg-card);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
     overflow: hidden;
-    transition: all 0.4s ease;
+    transition: all 0.4s ease, opacity 0.3s ease;
     position: relative;
 }
 
@@ -1987,6 +2076,44 @@ img { max-width: 100%; display: block; }
         grid-template-columns: repeat(2, 1fr);
     }
 
+    .product-layout {
+        flex-direction: column;
+    }
+
+    .product-sidebar {
+        width: 100%;
+        position: static;
+    }
+
+    .product-cat-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        padding: 10px;
+    }
+
+    .product-cat-item {
+        margin-bottom: 0;
+    }
+
+    .product-cat-link {
+        padding: 8px 14px;
+        font-size: 0.85rem;
+        border-radius: 50px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--border-color);
+    }
+
+    .product-cat-link.active {
+        background: var(--accent-fire);
+        color: #fff;
+        border-color: var(--accent-fire);
+    }
+
+    .product-cat-link.active::before {
+        display: none;
+    }
+
     .cases-grid {
         grid-template-columns: repeat(2, 1fr);
     }
@@ -2091,6 +2218,10 @@ img { max-width: 100%; display: block; }
 
     .product-grid {
         grid-template-columns: 1fr;
+    }
+
+    .product-cat-link .cat-count {
+        display: none;
     }
 
     .solution-layout {
